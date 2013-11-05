@@ -1,0 +1,115 @@
+<html>
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>
+    Cliente de BattleSystem
+    </title>
+<!--
+    Imports de websockify
+ -->
+    <script type="text/javascript" src="js/websock/websock.js"></script>
+    <script type="text/javascript" src="js/websock/util.js"></script>
+
+<!--
+    Jquery
+-->
+    <script type="text/javascript" src="js/jquery/jquery.js"></script>
+    <script type="text/javascript" src="js/jquery/jquery-ui.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+<!--
+    Logging
+-->
+    <script type="text/javascript" src="js/log.js"></script>
+<!--
+    Bibliotecas del juego (importa el orden(creo))
+-->
+    <script type="text/javascript" src="js/cell.js"></script>
+    <script type="text/javascript" src="js/codigo.js"></script>
+    <script type="text/javascript" src="js/board.js"></script>
+    <script type="text/javascript" src="js/state.js"></script>
+    <script type="text/javascript" src="js/player.js"></script>
+    <script type="text/javascript" src="js/events.js"></script>
+    <script type="text/javascript" src="js/game.js"></script>
+    <script type="text/javascript" src="js/connection.js"></script>
+    <script type="text/javascript" src="js/paneles.js"></script>
+<!--
+    Main del juego
+-->
+    <script type="text/javascript" src="js/main.js"></script>
+
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link rel="stylesheet" type="text/css" href="css/battlefield.css">
+    
+</head>
+<body>
+    <div id="global" class="row-fluid">
+        <div id="banner" class="offset1 span10">
+            <div id="slogan">
+                <h1>BattleSystem</h1>
+            </div>
+        </div>
+        <div id="error" class="offset3 span6">
+            <img src="img/error.png"> <br />
+            Se produjo un error.
+            <ul>
+            <li>Para más información, consultá el log.</li>
+            </ul>
+        </div>
+        <div id="fin">
+            <img src="img/ok.png"> <br />
+            El cliente de Batalla Naval terminó exitosamente.
+            <ul>
+            <li>Para jugar nuevamente, apretá F5.</li>
+            <li>Para revisar el partido, consultá el log.</li>
+            </ul>
+        </div>
+        <div id="coneccion" class="span12">
+            <img id="conectar" style="cursor:pointer;" src="img/start.png"><br />
+            <a id="conectar" href="#">¡Empezar a jugar!</a>
+        </div>
+        <div id="registro" class="span12">
+            <form id="form-registro">
+                Nombre del Jugador:
+                <input type="text" id="nombre_usuario" onclick="$(this).val('');" value="Diego Armando" /><br/>
+            </form>
+        </div>
+    <!--
+        Pantalla principal del juego.
+            Una vez logueado el jugador se mantendrá en esta pantalla.
+    -->
+        <div id="juego" class="span12">
+            <!-- Los nombres de los jugadores -->
+            <div id="jugadores" class="span4">
+                <span><h2>Jugadores</h2></span>
+                <ul id="l-jugadores" class="nav nav-tabs nav-stacked">
+                    
+                </ul>
+            </div>
+            <!-- Mi board -->
+            <div id="my-board" class="span4"></div>
+            <!-- Eventos -->
+            <div id="eventos" class="span4">
+                <div id="my-boats">
+                </div>
+                <ul id="l-eventos">
+                    
+                </ul>
+            </div>
+        </div>
+        <div id="overlay_eta" onclick="return false;">
+            <div id="eta">
+                <div id="eta-msg">
+                </div>
+            </div>
+        </div>
+        <div id="log_container" class="offset1 span10">
+            <div class="log_title offset1 span10"><a id="abrir_log" href="" onclick="return mostrar_log();">Mostrar log y comunicaci&oacute;n TCP</a></div>
+            <div class="log_title offset1 span10"><a id="cerrar_log" href="" onclick="return ocultar_log();">Ocultar log y comunicaci&oacute;n TCP</a></div>
+            <div id="log">
+            &nbsp;
+            </div>
+        </div>
+    </div>
+  
+</body>
+</html>

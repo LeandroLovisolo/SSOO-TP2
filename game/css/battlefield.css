@@ -1,0 +1,411 @@
+* {
+    font-family: Verdana, Tahoma, Arial, sans-serif;
+}
+body {
+    background-color: rgb(39, 103, 133);
+}
+
+h1 {
+    font-size: 30px;
+}
+
+h2 {
+    font-size: 20px; 
+}
+
+#global {
+    margin-left: auto;
+    margin-right: auto;
+  /*    width: 940px;*/
+    height: 500px;
+}
+
+#banner {
+    border-bottom: 2px solid #00949b;
+    clear: both;
+}
+#mmos {
+    margin: 50px 0px 10px 0px;
+}
+#hasobro {
+    float: right;
+    margin: 10px;
+}
+#slogan {
+    color: #00848b;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+#coneccion {
+    text-align: center;
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+
+#coneccion input {
+    margin: 30px;
+}
+
+#coneccion a {
+    color: #1D9962;
+    padding: 7px;
+    text-decoration: none;
+}
+
+#coneccion a:hover {
+    background-color: #A6EDCE;
+}
+
+#botones_comandos {
+    margin-top: 40px;
+    text-align: center;
+}
+
+#botones_comandos a {
+    color: #1D9962;
+    padding: 7px;
+    text-decoration: none;
+}
+
+#botones_comandos a:hover {
+    background-color: #A6EDCE;
+}
+
+#error {
+    border: 1px solid red;
+    background-color: #FFA6A6;
+    color: #990000;
+    text-align: center;
+    padding: 20px;
+    font-size: 12px;
+    /*padding-left: 40px;*/
+    /*margin-right: auto;*/
+    /*margin-top: 20px;*/
+    display: none;
+}
+
+#error img {
+/*    margin-left: 160px;
+    margin-bottom: 20px;*/
+}
+
+#fin {
+    border: 1px solid green;
+    background-color: #93ED99;
+    color: #005500;
+    width: 380px;
+    height: 150px;
+    padding: 20px;
+    font-size: 12px;
+    padding-left: 50px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    display: none;
+}
+
+#fin img {
+    margin-left: 160px;
+    margin-bottom: 20px;
+}
+
+#registro {
+    text-align: center;
+    margin-top: 40px;
+    margin-bottom: 40px;
+    display: none;
+    padding: 30px;
+}
+
+#registro input {
+    margin: 30px;
+    border: 1px solid 1D9962;
+    background-color: white;
+    width: 250px;
+    height: 50px;
+    text-align: center;
+    font-size: 16px;
+}
+
+#registro a {
+    color: #1D9962;
+    padding: 7px;
+    text-decoration: none;
+}
+
+#registro a:hover {
+    background-color: #A6EDCE;
+}
+
+
+
+
+
+.hack {
+    clear: both;
+}
+
+/* TODO: borrar 
+.casillero {
+   width: 40px;
+   height: 34px;
+   margin: 5px;
+   float: left;
+   border: 1px solid #00848b;
+} */
+
+
+
+
+
+#log_container {
+   padding-top: 20px;
+   font-size: 13px;
+/*   width: 940px;
+   margin-left: auto;
+   margin-right: auto;*/
+   color: #1D9962;
+}
+
+.log_title {
+}
+#log_container a {
+   padding: 7px;
+   text-decoration: none;
+   color: #1D9962;
+}
+
+#log_container a:hover {
+   background-color: #A6EDCE; 
+}
+
+
+#log {
+   margin-top: 7px;
+   width: 800px;
+   height: 300px;
+   background-color: rgb(39, 103, 133);
+   display: none;
+   font-size: 12px;
+   padding: 10px;
+   overflow: auto;
+   color: #1D9962;
+   border: 1px solid black;
+   text-align: left;
+   margin-left:auto;
+   margin-right:auto;
+}
+
+#cerrar_log {
+   display: none;
+}
+
+
+#juego {
+  display: none;
+  visibility:hidden;
+  height:100%;
+  margin-top: 25px;
+}
+
+#my-boats{
+  height: 200px;
+}
+
+#juego {
+    height:100%;
+
+}
+#my-board {
+}
+#target-board {
+}
+
+
+#mtd {
+  width:15px;
+  height:15px;
+}
+
+td.A {
+  background-color: rgb(37, 136, 182);
+}
+
+#mtd.A{
+ background-color: rgb(37, 136, 182, 0); 
+}
+
+td.B {
+  background-color: rgb(180, 146, 103);
+}
+
+#mtd.B {
+  background-color: rgb(58, 141, 88);
+}
+
+td.BE {
+  background-color: rgb(39, 203, 39);
+}
+
+td.U {
+  background-color: #ccc;
+}
+
+td.U:hover {
+  background-color: #5F5;
+}
+
+td.T {
+  background-color: rgb(200, 100, 100);
+}
+
+#mtd.T {
+  background-color: rgb(200, 100, 100);
+}
+
+
+td.H {
+  background-color: rgb(200, 100, 100);
+}
+
+
+
+#mtd.I {
+  background-color: rgb(236, 255, 15);
+}
+
+#mtd.D {
+  background-color: rgb(135, 186, 209);
+}
+
+#mtd.H {
+  background-color: rgb(200, 100, 100);
+  color:gray;
+}
+
+#cboard {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 60px;
+}
+
+#mboard {
+  margin-left: auto;
+   margin-right: auto;
+   border: 1px solid;
+}
+
+
+#cboard td {
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    border: 1px solid rgb(32, 100, 150);
+    cursor:pointer;
+}
+
+#overlay {
+    display: none;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width:100%;
+    height:100%;
+    text-align:center;
+    z-index: 1000;
+    background-color: #CCC;
+}
+
+#jugadores {
+}
+
+#coneccion {
+    padding: 40px;
+}
+
+.jug {
+    display:block;
+    height: 20px;
+    background-color: #ccc;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+div {
+  #border: 1px solid black;
+}
+
+li.selected {
+  background-color: rgb(200, 100, 100);
+  color: white;
+}
+
+a.selected {
+  color: white;
+}
+
+/*#overlay_eta {
+  display: none;
+  z-index:10000;
+  background-color:#333;
+  width:675px;
+  min-height:200px;
+  border:1px solid #666;
+ 
+  -moz-box-shadow:0 0 90px 5px #000;
+  -webkit-box-shadow: 0 0 90px #000;
+}*/
+
+#overlay_eta {
+  display: none;
+  z-index:10000;
+  background-color:#333;
+  margin-left: auto;
+  margin-right: auto;
+  filter:alpha(opacity=70);
+  -moz-opacity:0.7;
+  -khtml-opacity: 0.7;
+  opacity: 0.7;
+  position:absolute;
+  height: 100%;
+  width: 100%;
+  left:0;
+  top:0;
+}
+
+#eta {
+  color: white;
+  display: table;
+  text-align: center;
+  background-color: rgb(200, 100, 100);
+  border:1px solid #666;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 200px;
+  width: 250px;
+  height: 250px;
+  -moz-box-shadow:0 0 90px 5px #000;
+  -webkit-box-shadow: 0 0 90px #000;
+}
+
+#eta-msg {
+  color:white;
+  vertical-align: middle;
+  text-align: center;
+  height: 100%;
+  display: table-cell;
+}
+
+#eventos {
+  height: 500px;
+  overflow: auto;
+}
+
+#l-eventos li{
+  font-size: 9pt;
+}
