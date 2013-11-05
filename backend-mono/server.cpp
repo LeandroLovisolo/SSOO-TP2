@@ -22,6 +22,8 @@
 #include <modelo.h>
 #include <decodificador.h>
 #include <globales.h>
+#include <pthread.h>
+
 
 #define MAX_MSG_LENGTH 4096
 #define MAX_JUGADORES 100
@@ -57,26 +59,6 @@ void reset() {
 	}
 	model = new Modelo(n, tamanio, tamanio_barcos);
 	decoder = new Decodificador(model);
-}
-
-/* Acepta todas las conexiones entrantes */
-
-void accept() {
-	int t;
-	for (int i = 0; i < n; i++) {
-		t = sizeof(remote);
-		if ((s[i] = accept(sock, (struct sockaddr*) &remote, (socklen_t*) &t)) == -1) {
-			perror("aceptando la conexión entrante");
-			exit(1);
-		}
-		ids[i] = -1;
-		int flag = 1;
-		setsockopt(s[i],            /* socket affected */
-				IPPROTO_TCP,     /* set option at TCP level */
-				TCP_NODELAY,     /* name of option */
-				(char *) &flag,  /* the cast is historical */
-				sizeof(int));    /* length of option value */
-	}
 }
 
 
@@ -152,6 +134,39 @@ void atender_jugador(int i) {
 	}
 }
 
+/* Acepta todas las conexiones entrantes */
+void *cliente(void *nroJugador) {
+	bool sale = false;
+	int *ptr_jugador = (int *) nroJugador;
+	int jugador = *ptr_jugador;
+	while (!sale) {
+		atender_jugador(jugador);
+		sale = model->termino();
+	}
+	return 0;
+}
+
+void acceptClients(pthread_t *thread) {
+	int t;
+	for (int i = 0; i < n; i++) {
+		t = sizeof(remote);
+		//No parece necesario guardar el socket en s[i]
+		if ((s[i] = accept(sock, (struct sockaddr*) &remote, (socklen_t*) &t)) == -1) {
+		//if ((int newSock= accept(sock, (struct sockaddr*) &remote, (socklen_t*) &t)) == -1) {
+			perror("aceptando la conexión entrante");
+			exit(1);
+		}
+		ids[i] = -1;
+		int flag = 1;
+		setsockopt(s[i],            /* socket affected */
+				IPPROTO_TCP,     /* set option at TCP level */
+				TCP_NODELAY,     /* name of option */
+				(char *) &flag,  /* the cast is historical */
+				sizeof(int));    /* length of option value */
+		pthread_create(&thread[i], NULL, cliente, &i);
+	}
+}
+
 /*
  * Recibe 4 parametros:
  * argv[1]: Puerto
@@ -200,33 +215,23 @@ int main(int argc, char * argv[]) {
 		perror("escuchando");
 		exit(1);
 	}
+	//N pthreads, uno por cada jugador
+	pthread_t thread[n];
 
-	accept();
+	acceptClients(thread);
 	
 	
 	printf("Corriendo...\n");
-	
-	bool sale = false;
-	while (!sale) {
-		fd_set readfds;
-		FD_ZERO(&readfds);
-		for (int i = 0; i < n; i++) {
-			FD_SET(s[i], &readfds);
-		}
-		select(s[n-1]+1, &readfds, NULL, NULL, NULL);
-		
-		for (int i = 0; i < n; i++) {
-			if (FD_ISSET(s[i], &readfds)) {
-				atender_jugador(i);
-			}
-		}
-		sale = model->termino();
-	}
+	//Espero a que terminen todos los threads
+    for (int i = 0; i < n; ++i) {
+    	pthread_join(thread[i], NULL);
+    }
+
     printf("Termino el juego, cerrando\n");
+    //Cierro los sockets
 	for (int i = 0; i < n; i++) {
 		close(s[i]);
 	}
-
 	close(sock);
 	return 0;
 }
