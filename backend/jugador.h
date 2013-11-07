@@ -3,6 +3,7 @@
 
 #include <string>
 #include <tablero.h>
+#include "RWLock.h"
 
 class Jugador {
 	public:
@@ -24,6 +25,12 @@ class Jugador {
 		void			print();
 #endif
 	private:
+		RWLock			mutexNombre;
+		RWLock			mutexTablero;
+		RWLock			mutexPuntaje;
+		RWLock			mutexBarcosFlotando;
+		RWLock			mutexTermino;
+
 		std::string 	nombre;						/* nombre del jugador */
 		Tablero * 		tablero;					/* tablero del jugador */
 		int				puntaje;					/* puntaje del jugador */
