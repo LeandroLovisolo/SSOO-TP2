@@ -6,13 +6,21 @@ RWLock::RWLock() {
 	//Inicializo el mutex
 	pthread_mutex_init(&turnstileMutex, NULL);
 	pthread_mutex_init(&roomEmptyMutex, NULL);
+	leyendo = 0;
+	pthread_mutex_init(&leyendoMutex, NULL);
 }
 
 void RWLock::rlock() {
 	pthread_mutex_lock(&turnstileMutex);
 	pthread_mutex_unlock(&turnstileMutex);
 
-	pthread_mutex_lock(&roomEmptyMutex);
+	pthread_mutex_lock(&leyendoMutex);
+	if(leyendo == 0) {
+		pthread_mutex_lock(&roomEmptyMutex);
+	}
+	leyendo++;
+	pthread_mutex_unlock(&leyendoMutex);
+
 }
 
 void RWLock::wlock() {
@@ -23,6 +31,12 @@ void RWLock::wlock() {
 
 void RWLock::runlock() {
 	pthread_mutex_unlock(&roomEmptyMutex);
+	pthread_mutex_lock(&leyendoMutex);
+	leyendo--;
+	if(leyendo == 0) {
+		pthread_mutex_unlock(&roomEmptyMutex);
+	}
+	pthread_mutex_unlock(&leyendoMutex);
 }
 
 void RWLock::wunlock() {
@@ -32,5 +46,6 @@ void RWLock::wunlock() {
 
 RWLock::~RWLock() {
 	pthread_mutex_destroy(&turnstileMutex);
+	pthread_mutex_destroy(&leyendoMutex);
 	pthread_mutex_destroy(&roomEmptyMutex);
 }

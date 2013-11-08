@@ -13,8 +13,10 @@ class RWLock {
         void wunlock();
 
     private:
+        unsigned leyendo;
     	pthread_mutex_t turnstileMutex;
     	pthread_mutex_t roomEmptyMutex;
+        pthread_mutex_t leyendoMutex;
 };
 
 #endif
