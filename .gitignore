@@ -1,1 +1,6 @@
+# Código objeto
 *.o
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
