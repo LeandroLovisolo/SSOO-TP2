@@ -41,7 +41,7 @@ int no_bloqueante(int fd) {
 /* Variables globales del server */
 int sock;							// Socket donde se escuchan las conexiones entrantes
 struct sockaddr_in name, remote;	// Direcciones
-char buf[MAX_MSG_LENGTH];			// Buffer de recepción de mensajes
+char buf[MAX_JUGADORES][MAX_MSG_LENGTH]; // Buffer de recepción de mensajes
 int s[MAX_JUGADORES];				// Sockets de los jugadores
 int ids[MAX_JUGADORES];				// Ids de los jugadores
 Modelo * model = NULL;				// Puntero al modelo del juego
@@ -65,6 +65,7 @@ void reset() {
 /* Socket de comunicación del controlador */
 int s_controlador;
 /* Para anteder al controlador */
+/*
 void atender_controlador() {
 	int recibido;
 	std::string resp;
@@ -81,27 +82,27 @@ void atender_controlador() {
 		}
 	}
 }
-
+*/
 
 /* Para atender al i-esimo jugador */
 void atender_jugador(int i) {
 	int recibido;
 	std::string resp;
-	recibido = recv(s[i], buf, MAX_MSG_LENGTH, 0);
+	recibido = recv(s[i], buf[i], MAX_MSG_LENGTH, 0);
 	if (recibido < 0) {
 		perror("Recibiendo ");
 		
 	} else if (recibido > 0) {
-		buf[recibido]='\0';
+		buf[i][recibido]='\0';
 		// Separo los mensajes por el caracter |
-		char * pch = strtok(buf, "|");
+
+		char * pch = strtok(buf[i], "|");
 		while (pch != NULL) {
 			
 			// No muestro por pantalla los NOP, son muchos
 			if (strstr(pch, "Nop") == NULL) {
 				printf("Recibido: %s\n", pch);
 			}
-			
 			//Decodifico el mensaje y obtengo una respuesta
 			resp = decoder->decodificar(pch);
 			
@@ -117,10 +118,8 @@ void atender_jugador(int i) {
 			if (strstr(pch, "Nop") == NULL) {
 				printf("Resultado %s\n", resp.c_str());
 			}
-			
 			// Si ya se cual es el jugador
 			if (ids[i] != -1) {
-				// Busco si hay eventos para enviar y los mando
 				bool hayEventos = model->hayEventos(ids[i]);
 				while(hayEventos) {
 					resp = decoder->encodeEvent(ids[i]);
@@ -134,11 +133,13 @@ void atender_jugador(int i) {
 	}
 }
 
-/* Acepta todas las conexiones entrantes */
+//Funcion que corre cada thread
 void *cliente(void *nroJugador) {
 	bool sale = false;
 	int *ptr_jugador = (int *) nroJugador;
 	int jugador = *ptr_jugador;
+	delete ptr_jugador;
+	printf("Nuevo jugador aceptado! %d \n",jugador);
 	while (!sale) {
 		atender_jugador(jugador);
 		sale = model->termino();
@@ -146,16 +147,17 @@ void *cliente(void *nroJugador) {
 	return 0;
 }
 
+/* Acepta todas las conexiones entrantes */
 void acceptClients(pthread_t *thread) {
+	printf("Iniciando aceptación de clientes \n");
 	int t;
 	for (int i = 0; i < n; i++) {
 		t = sizeof(remote);
-		//No parece necesario guardar el socket en s[i]
 		if ((s[i] = accept(sock, (struct sockaddr*) &remote, (socklen_t*) &t)) == -1) {
-		//if ((int newSock= accept(sock, (struct sockaddr*) &remote, (socklen_t*) &t)) == -1) {
 			perror("aceptando la conexión entrante");
 			exit(1);
 		}
+		printf("Paso el accept %d \n",i);
 		ids[i] = -1;
 		int flag = 1;
 		setsockopt(s[i],            /* socket affected */
@@ -163,7 +165,9 @@ void acceptClients(pthread_t *thread) {
 				TCP_NODELAY,     /* name of option */
 				(char *) &flag,  /* the cast is historical */
 				sizeof(int));    /* length of option value */
-		pthread_create(&thread[i], NULL, cliente, &i);
+		int *j = new int;
+		*j = i;
+		pthread_create(&thread[i], NULL, cliente, j);
 	}
 }
 
