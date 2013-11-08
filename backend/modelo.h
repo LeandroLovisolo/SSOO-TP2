@@ -6,6 +6,7 @@
 #include <evento.h>
 #include <tiro.h>
 #include <queue>
+#include "RWLock.h"
 
 enum EstadoJuego {SETUP, DISPAROS, FINALIZADO};
 
@@ -33,6 +34,13 @@ class Modelo {
 		void	print();
 #endif
 	private:
+		RWLock					mutexJugando;
+		RWLock					mutexCantidadJugadores;
+		RWLock					mutexJugadoresListos;
+		RWLock					*mutexEventos;
+		RWLock					*mutexJugadores;
+		RWLock					*mutexTiros;
+
 		int						cantidad_jugadores;				/* cantidad de jugadores inscriptos */
 		int						jugadores_listos;				/* cantidad de jugadores ya ubicados */
 		Jugador					**jugadores;					/* Jugadores */
