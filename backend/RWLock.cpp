@@ -1,6 +1,6 @@
 #include "RWLock.h"
 
-//Esta solución puede hacer que los writes tarden más que los reads (Es un problema?)
+//Solucion readers-writers no starvation de little book of semaphores, pag 79
 
 RWLock::RWLock() {
 	//Inicializo el mutex
