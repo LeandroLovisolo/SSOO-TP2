@@ -40,7 +40,7 @@ int no_bloqueante(int fd) {
 
 /* Variables globales del server */
 int sock;							// Socket donde se escuchan las conexiones entrantes
-struct sockaddr_in name, remote;	// Direcciones
+struct sockaddr_in name, name_controlador, remote;	// Direcciones
 char buf[MAX_JUGADORES][MAX_MSG_LENGTH]; // Buffer de recepción de mensajes
 int s[MAX_JUGADORES];				// Sockets de los jugadores
 int ids[MAX_JUGADORES];				// Ids de los jugadores
@@ -64,6 +64,28 @@ void reset() {
 
 /* Socket de comunicación del controlador */
 int s_controlador;
+/*
+void *controlador(void *ptr) {
+	s_controlador = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock < 0) {
+		perror("abriendo socket");
+		exit(1);
+	}
+	name_controlador.sin_family = AF_INET;
+	name_controlador.sin_addr.s_addr = INADDR_ANY;
+	name_controlador.sin_port = htons(port);
+	if (bind(s_controlador, (const struct sockaddr*) &name_controlador, sizeof(name_controlador))) {
+		perror("binding socket");
+		exit(1);
+	}
+	
+	if (listen(s_controlador, 1) == -1) {
+		perror("escuchando");
+		exit(1);
+	}
+
+}
+*/
 /* Para anteder al controlador */
 /*
 void atender_controlador() {
