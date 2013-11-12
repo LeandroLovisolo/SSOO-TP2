@@ -47,7 +47,7 @@ int Modelo::agregarJugador(std::string nombre) {
 
 	int nuevoid = 0;
 	bool agregado = false;
-	for (nuevoid = 0; nuevoid < max_jugadores && this->jugadores[nuevoid] != NULL; nuevoid++) {
+	for (nuevoid = 0; nuevoid < max_jugadores; nuevoid++) {
 		this->mutexJugadores[nuevoid].wlock();
 		if(this->jugadores[nuevoid] == NULL) {
 			this->jugadores[nuevoid] = new Jugador(nombre);
