@@ -179,17 +179,14 @@ bool Modelo::termino() {
 
 /** @Deprecated */
 error Modelo::reiniciar() {
-	mutexJugando.wlock();
 	for (int i = 0; i < max_jugadores; i++) {
-		mutexJugadores[i].wlock();
 		if (this->jugadores[i] != NULL) {
 			this->jugadores[i]->reiniciar();
 			this->tiros[i].reiniciar();
 		}
-		mutexJugadores[i].wunlock();
 	}
 	this->jugando = SETUP;
-	mutexJugando.wunlock();
+	
 	return ERROR_NO_ERROR;
 	
 }
