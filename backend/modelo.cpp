@@ -43,24 +43,26 @@ Modelo::~Modelo() {
 
 /** Registra un nuevo jugador en la partida */
 int Modelo::agregarJugador(std::string nombre) {
-	mutexJugando.rlock();
-	if (this->jugando != SETUP) {
-		mutexJugando.runlock();
-		return -ERROR_JUEGO_EN_PROGRESO;
-	}
+	if (this->jugando != SETUP) return -ERROR_JUEGO_EN_PROGRESO;
+
 	int nuevoid = 0;
-	//Esto necesesitaría algún lock (VER)
-	for (nuevoid = 0; nuevoid < max_jugadores && this->jugadores[nuevoid] != NULL; nuevoid++);
-	
-	if (this->jugadores[nuevoid] != NULL) return -ERROR_MAX_JUGADORES;
-	
-	this->jugadores[nuevoid] = new Jugador(nombre);
+	bool agregado = false;
+	for (nuevoid = 0; nuevoid < max_jugadores && this->jugadores[nuevoid] != NULL; nuevoid++) {
+		this->mutexJugadores[nuevoid].wlock();
+		if(this->jugadores[nuevoid] == NULL) {
+			this->jugadores[nuevoid] = new Jugador(nombre);
+			this->mutexJugadores[nuevoid].wunlock();
+			agregado = true;
+			break;
+		}
+		this->mutexJugadores[nuevoid].wunlock();
+	}
+	if(!agregado) return -ERROR_MAX_JUGADORES;
 
 	mutexCantidadJugadores.wlock();
 	this->cantidad_jugadores++;
 	mutexCantidadJugadores.wunlock();
-	mutexJugando.runlock();
-	
+
 	return nuevoid;
 }
 
