@@ -193,18 +193,19 @@ error Modelo::reiniciar() {
 
 /** Desuscribir a un jugador del juego */
 error Modelo::quitarJugador(int s_id) {
-	//Ver cuando pasa
 	mutexJugando.rlock();
 	if (this->jugando != SETUP) {
 		mutexJugando.runlock();
 		return -ERROR_JUEGO_EN_PROGRESO;
 	}
+
 	mutexJugadores[s_id].wlock();
 	if (this->jugadores[s_id] == NULL) {
 		mutexJugadores[s_id].wunlock();
 		mutexJugando.runlock();
 		return -ERROR_JUGADOR_INEXISTENTE;
 	}
+
 	delete this->jugadores[s_id];
 	this->jugadores[s_id] = NULL;
 
