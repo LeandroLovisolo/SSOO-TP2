@@ -117,23 +117,21 @@ error Modelo::borrar_barcos(int t_id) {
 /** Comienza la fase de tiros
 */
 error Modelo::empezar() {
-	printf("Entra en empezar \n");
-	//Por que entraría en otr lado que no sea empezar?
+	mutexJugando.wlock();
 	if (this->jugando != SETUP) {
+		mutexJugando.wunlock();
 		return -ERROR_JUEGO_EN_PROGRESO;
 	}
 	for (int i = 0; i < max_jugadores; i++) {
 		if (this->jugadores[i] != NULL) {
-			//Creo que hay que meter mutex en eventos
 			Evento evento(0, i, 0, 0, EVENTO_START);
-			printf("Consigo lock para el evento i \n");
 			mutexEventos[i].wlock();
 			this->eventos[i].push(evento);
-			printf("Devuelvo lock para el evento i \n");
 			mutexEventos[i].wunlock();
 		}
 	}
 	this->jugando = DISPAROS;
+	mutexJugando.wunlock();
 	return ERROR_NO_ERROR;
 	
 }
