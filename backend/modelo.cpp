@@ -71,30 +71,23 @@ int Modelo::agregarJugador(std::string nombre) {
 	Sino quita todos los barcos del usuario.
 */
 error Modelo::ubicar(int t_id, int * xs, int *  ys, int tamanio) {
-	//Wunlock, porque si está listo, quiero que escriba listo
-	//Es mejor esto o liberar el rlock y hacer un wlock? o es lo mismo por ser al inicio?
-	mutexJugando.wlock();
-	if (this->jugando != SETUP) {
-		mutexJugando.wunlock();
-		return -ERROR_JUEGO_EN_PROGRESO;
-	}
-	//Ver si es necesario mutex
+	if (this->jugando != SETUP) return -ERROR_JUEGO_EN_PROGRESO;
+
+	mutexJugadores[t_id].wlock();
 	if (this->jugadores[t_id] == NULL) {
-		mutexJugando.wunlock();
+		mutexJugadores[t_id].wunlock();
 		return -ERROR_JUGADOR_INEXISTENTE;
 	}
 
-	//Ver que onda con ubicar, si necesita mutex
 	int retorno = this->jugadores[t_id]->ubicar(xs, ys, tamanio);
 	if (retorno != ERROR_NO_ERROR){
 		retorno = this->borrar_barcos(t_id);
 	}
+
 	//Si el jugador esta listo
 	if (retorno == ERROR_NO_ERROR && this->jugadores[t_id]->listo()) {
 		mutexJugadoresListos.wlock();
 		this->jugadores_listos++;
-		printf("Jugadores listos: %d \n",this->jugadores_listos);
-		//Debería terminar acá el wlock y pedir un rlock?
 
 		//Si ya estan listos todos los jugadores
 		if(this->jugadores_listos == max_jugadores) {
@@ -103,7 +96,8 @@ error Modelo::ubicar(int t_id, int * xs, int *  ys, int tamanio) {
 		}
 		mutexJugadoresListos.wunlock();
 	}
-	mutexJugando.wunlock();
+
+	mutexJugadores[t_id].wunlock();
 	return retorno;
 }
 
