@@ -162,7 +162,10 @@ error Modelo::finalizar() {
 	de cada jugador de que sabe que terminamos de jugar. */
 error Modelo::ack(int s_id){
 	//Guardarme en cada jugador que termino de jugar.
-	return this->jugadores[s_id]->ack();
+	mutexJugadores[s_id].wlock();
+	error retorno = this->jugadores[s_id]->ack();
+	mutexJugadores[s_id].wunlock();
+	return retorno;
 }
 
 //Si necesita locks
