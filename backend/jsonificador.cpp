@@ -155,6 +155,7 @@ std::string Jsonificador::traducir_estado_casilla(int estado) {
 
 
 std::string Jsonificador::scores() {
+	//Meto un wlock en cada jugador? O con ir lockeando es válido?
 	std::stringstream ss;
 	ss << "{ \"Name\": \"Scores\", \"Data\": [";
 	bool primero = true;

@@ -85,7 +85,7 @@ error Modelo::ubicar(int t_id, int * xs, int *  ys, int tamanio) {
 	//Ver que onda con ubicar, si necesita mutex
 	int retorno = this->jugadores[t_id]->ubicar(xs, ys, tamanio);
 	if (retorno != ERROR_NO_ERROR){
-		this->borrar_barcos(t_id);
+		retorno = this->borrar_barcos(t_id);
 	}
 	//Si el jugador esta listo
 	if (retorno == ERROR_NO_ERROR && this->jugadores[t_id]->listo()) {
@@ -109,11 +109,11 @@ error Modelo::ubicar(int t_id, int * xs, int *  ys, int tamanio) {
 error Modelo::borrar_barcos(int t_id) {
 	printf("Entro a borrar barcos! \n");
 	if (this->jugando != SETUP) {
-		mutexJugando.runlock();
 		return -ERROR_JUEGO_EN_PROGRESO;
 	}
-	//Ver mutex en jugadores
-	if (this->jugadores[t_id] == NULL) return -ERROR_JUGADOR_INEXISTENTE;
+	if (this->jugadores[t_id] == NULL) {
+		return -ERROR_JUGADOR_INEXISTENTE;
+	}
 	error quitar = this->jugadores[t_id]->quitar_barcos();
 	return quitar;
 }
@@ -193,14 +193,17 @@ bool Modelo::termino() {
 
 /** @Deprecated */
 error Modelo::reiniciar() {
+	mutexJugando.wlock();
 	for (int i = 0; i < max_jugadores; i++) {
+		mutexJugadores[i].wlock();
 		if (this->jugadores[i] != NULL) {
 			this->jugadores[i]->reiniciar();
 			this->tiros[i].reiniciar();
 		}
+		mutexJugadores[i].wunlock();
 	}
 	this->jugando = SETUP;
-	
+	mutexJugando.wunlock();
 	return ERROR_NO_ERROR;
 	
 }

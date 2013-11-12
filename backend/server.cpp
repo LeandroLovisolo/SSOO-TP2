@@ -63,6 +63,7 @@ void reset() {
 	decoder = new Decodificador(model);
 }
 
+
 /* Para anteder al controlador */
 void atender_controlador(int nro_controlador) {
 	int recibido;

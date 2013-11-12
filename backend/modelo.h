@@ -29,6 +29,7 @@ class Modelo {
 		Evento	actualizar_jugador(int t_id);	/* devuelve el proximo evento del jugador */
         int     hayEventos(int s_id);
         Evento  dameEvento(int s_id);
+		RWLock					*mutexJugadores;
 	
 #ifdef DEBUG
 		void	print();
@@ -38,7 +39,6 @@ class Modelo {
 		RWLock					mutexCantidadJugadores;
 		RWLock					mutexJugadoresListos;
 		RWLock					*mutexEventos;
-		RWLock					*mutexJugadores;
 		RWLock					*mutexTiros;
 
 		int						cantidad_jugadores;				/* cantidad de jugadores inscriptos */
