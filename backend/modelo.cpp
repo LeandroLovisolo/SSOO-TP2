@@ -269,29 +269,9 @@ int Modelo::apuntar(int s_id, int t_id, int x, int y, int *eta) {
 
 /** Obtener un update de cuanto tiempo debo esperar para que se concrete el tiro */
 int Modelo::dame_eta(int s_id) {
-	//Quiero que se conserve el estado del juego
-	mutexJugando.rlock();
-	if (this->jugando != DISPAROS) {
-		mutexJugando.runlock();
-		return -ERROR_JUEGO_NO_COMENZADO;
-	}
-	//Quiero que se conserve el estado del jugador (que no me lo saquen)
-	mutexJugadores[s_id].rlock();
-	if (this->jugadores[s_id] == NULL) {
-
-		mutexJugadores[s_id].runlock();
-		mutexJugando.runlock();
-
-		return -ERROR_JUGADOR_INEXISTENTE;
-	}
-	//Quiero que se conserven los tiros para conseguir el eta correcto
-	mutexTiros[s_id].rlock();
-	int eta = this->tiros[s_id].getEta();
-
-	mutexTiros[s_id].runlock();
-	mutexJugadores[s_id].runlock();
-	mutexJugando.runlock();
-	return eta;
+	if (this->jugando != DISPAROS) return -ERROR_JUEGO_NO_COMENZADO;
+	if (this->jugadores[s_id] == NULL) return -ERROR_JUGADOR_INEXISTENTE;
+	return this->tiros[s_id].getEta();
 }
 
 /** Concretar el tiro efectivamente, solo tiene exito si ya trascurrió el eta.
