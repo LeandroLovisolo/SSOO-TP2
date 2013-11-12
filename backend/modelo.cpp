@@ -162,29 +162,18 @@ error Modelo::finalizar() {
 	de cada jugador de que sabe que terminamos de jugar. */
 error Modelo::ack(int s_id){
 	//Guardarme en cada jugador que termino de jugar.
-	mutexJugadores[s_id].wlock();
-	error retorno = this->jugadores[s_id]->ack();
-	mutexJugadores[s_id].wunlock();
-	return retorno;
+	return this->jugadores[s_id]->ack();
 }
 
-//Si necesita locks
 bool Modelo::termino() {
-	mutexJugando.rlock();
-	if (this->jugando == SETUP) {
-		mutexJugando.runlock();
-		return false;
-	}
     for(int i = 0; i < max_jugadores; i++){
     	mutexJugadores[i].rlock();
         if(!this->jugadores[i]->termino()) {
         	mutexJugadores[i].runlock();
-        	mutexJugando.runlock();
             return false;
         }
         mutexJugadores[i].runlock();
     }
-    mutexJugando.runlock();
     return true;
 }
 
