@@ -1,9 +1,12 @@
+# Binarios
+/backend/server
+
 # Código objeto
 *.o
+
+# Directorio con código original de referencia
+/backend-mono
 
 # Sublime Text
 *.sublime-project
 *.sublime-workspace
-
-# Directorio con código original de referencia
-/backend-mono
