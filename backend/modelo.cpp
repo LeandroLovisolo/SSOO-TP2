@@ -224,11 +224,12 @@ int Modelo::apuntar(int s_id, int t_id, int x, int y, int *eta) {
 		mutexJugando.runlock();
 		return -ERROR_JUEGO_NO_COMENZADO;
 	}
-	//No quiero que me saquen el jugador mientras apunto
-	//Voy a escribir al jugador (apuntando)
-	//Quiero mantener que esté vivo al comenzar a apuntar
+
+	// No permito que me dispare a ninguno de los dos
+	// barcos mientras proceso el tiro actual.
 	mutexJugadores[s_id].wlock();
 	mutexJugadores[t_id].wlock();
+
 	if (this->jugadores[s_id] == NULL || this->jugadores[t_id] == NULL) {
 		mutexJugando.runlock();
 		mutexJugadores[s_id].wunlock();
@@ -245,8 +246,6 @@ int Modelo::apuntar(int s_id, int t_id, int x, int y, int *eta) {
 
 	int retorno = RESULTADO_APUNTADO_DENEGADO;
 
-	//Quiero mantener que sea posible apuntar
-	//Quiero hacer Wlock para realizar el tiro
 	mutexTiros[s_id].wlock();
 	if (this->tiros[s_id].es_posible_apuntar()) {
 		retorno = this->jugadores[t_id]->apuntar(s_id, x, y);
@@ -254,18 +253,15 @@ int Modelo::apuntar(int s_id, int t_id, int x, int y, int *eta) {
 			*eta = this->tiros[s_id].tirar(t_id, x, y);
 			Evento nuevoevento(s_id, t_id, x, y, CASILLA_EVENTO_INCOMING);
 
-			//Voy a agregar un nuevo evento, WLock a eventos
-			printf("Consigo lock para el evento i \n");
 			mutexEventos[t_id].wlock();
 			this->eventos[t_id].push(nuevoevento);
 			mutexEventos[t_id].wunlock();
-			printf("Devuelvo lock para el evento i \n");
-
 		}
 	}
+	mutexTiros[s_id].wunlock();
+
 	mutexJugadores[s_id].wunlock();
 	mutexJugadores[t_id].wunlock();
-	mutexTiros[s_id].wunlock();
 	mutexJugando.runlock();
 	return retorno;
 	
