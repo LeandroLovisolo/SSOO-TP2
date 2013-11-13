@@ -1,5 +1,6 @@
 # Binarios
 /backend/server
+/backend/tests
 
 # Código objeto
 *.o
@@ -7,6 +8,13 @@
 # Código objeto y binarios de websockify
 rebind.o
 rebind.so
+
+# LaTeX
+informe.pdf
+tex/*.pdf
+tex/*.aux
+tex/*.toc
+tex/*.log
 
 # Directorio con código original de referencia
 /backend-mono
