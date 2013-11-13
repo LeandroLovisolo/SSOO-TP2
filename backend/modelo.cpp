@@ -139,20 +139,17 @@ error Modelo::empezar() {
 	Se marca el juego como terminado y se le notifica a todos los participantes */
 error Modelo::finalizar() {
 	//Enviar un evento a todos avisando que termino.
-	//Ver si es necesario mutex
-	mutexJugando.rlock();
-	if (this->jugando != DISPAROS) {
-		mutexJugando.runlock();
-		return -ERROR_JUEGO_NO_COMENZADO;	
-	}
+	if (this->jugando != DISPAROS) return -ERROR_JUEGO_NO_COMENZADO;
 	for (int i = 0; i < max_jugadores; i++) {
 		if (this->jugadores[i] != NULL) {
 			//Mutex en eventos?
 			Evento evento(0, i, 0, 0, EVENTO_END);
+
+			mutexEventos[i].wlock();
 			this->eventos[i].push(evento);
+			mutexEventos[i].wunlock();
 		}
 	}
-	mutexJugando.runlock();
 	this->jugando = FINALIZADO;
 	return ERROR_NO_ERROR;
 }
@@ -277,14 +274,14 @@ int Modelo::dame_eta(int s_id) {
 /** Concretar el tiro efectivamente, solo tiene exito si ya trascurrió el eta.
 	y e impacta con algo.*/
 int Modelo::tocar(int s_id, int t_id) {
-	mutexJugando.rlock();
+	mutexJugando.wlock();
 	if (this->jugando != DISPAROS) {
-		mutexJugando.runlock();
+		mutexJugando.wunlock();
 		return -ERROR_JUEGO_NO_COMENZADO;
 	}
 
 	if (this->jugadores[s_id] == NULL || this->jugadores[t_id] == NULL) {
-		mutexJugando.runlock();
+		mutexJugando.wunlock();
 		return -ERROR_JUGADOR_INEXISTENTE;	
 	}
 	
@@ -316,7 +313,9 @@ int Modelo::tocar(int s_id, int t_id) {
 			mutexEventos[t_id].wunlock();
 
 			//Evento para el tirador
+			mutexEventos[s_id].wlock();
 			this->eventos[s_id].push(evento);
+			mutexEventos[s_id].wunlock();
 
 			if(murio) {
 				mutexCantidadJugadores.wlock();
@@ -343,7 +342,7 @@ int Modelo::tocar(int s_id, int t_id) {
 	}
 
 	mutexTiros[s_id].wunlock();
-	mutexJugando.runlock();
+	mutexJugando.wunlock();
 
 	return retorno;
 }
@@ -391,8 +390,6 @@ Evento Modelo::dameEvento(int s_id) {
 
 /** chequear si hay eventos nuevos para un jugador */
 Evento Modelo::actualizar_jugador(int s_id) {
-	mutexEventos[s_id].wlock();
-
 	int tocado = this->tocar(s_id, this->tiros[s_id].t_id);
 
 	// En lugar de llamar a hayEventos (como en el código mono-thread original)
@@ -400,13 +397,14 @@ Evento Modelo::actualizar_jugador(int s_id) {
 	// ahora realiza un read-lock sobre la cola de eventos, pero ésta ya está
 	// protegida con un write-lock al comienzo de actualizar_jugador.
 	if (this->eventos[s_id].size() > 0) {
+		mutexEventos[s_id].wlock();
 		Evento retorno = this->eventos[s_id].front();
+		mutexEventos[s_id].wunlock();
+
 		this->eventos[s_id].pop();
 
-		mutexEventos[s_id].wunlock();
 		return retorno;
 	} else {
-		mutexEventos[s_id].wunlock();
 		return Evento(s_id, -1, 0, 0, -tocado);
 	}
 }
