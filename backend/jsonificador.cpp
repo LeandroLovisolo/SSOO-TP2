@@ -67,6 +67,9 @@ std::string Jsonificador::start() {
 
 std::string Jsonificador::player_info(int id) {
 	std::stringstream ss;
+
+	this->modelo->mutexJugadores[id].rlock();
+
 	Tablero * tab = this->modelo->jugadores[id]->tablero;
 	int st;
 	Casilla * cas;
@@ -86,10 +89,10 @@ std::string Jsonificador::player_info(int id) {
 		ss << "]";
 	}
 	
+	this->modelo->mutexJugadores[id].runlock();
+
 	ss <<"]}}|";
 	return ss.str();
-	
-	
 }
 
 
