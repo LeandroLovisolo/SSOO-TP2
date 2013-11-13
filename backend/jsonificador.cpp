@@ -165,6 +165,7 @@ std::string Jsonificador::scores() {
 	ss << "{ \"Name\": \"Scores\", \"Data\": [";
 	bool primero = true;
 	for (int i = 0; i < max_jugadores; i++) {
+		this->modelo->mutexJugadores[i].rlock();
 		if (this->modelo->jugadores[i]!= NULL) {
 			if (!primero) {
 				ss << ",";
@@ -175,6 +176,7 @@ std::string Jsonificador::scores() {
 				primero = false;
 			}
 		}
+		this->modelo->mutexJugadores[i].runlock();
 	}
 	ss << "]}|";
 	return ss.str();
