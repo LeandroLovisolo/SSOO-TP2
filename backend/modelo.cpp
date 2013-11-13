@@ -277,31 +277,25 @@ int Modelo::dame_eta(int s_id) {
 /** Concretar el tiro efectivamente, solo tiene exito si ya trascurrió el eta.
 	y e impacta con algo.*/
 int Modelo::tocar(int s_id, int t_id) {
-	//Quiero que se conserve el estado del juego
 	mutexJugando.rlock();
 	if (this->jugando != DISPAROS) {
 		mutexJugando.runlock();
 		return -ERROR_JUEGO_NO_COMENZADO;
 	}
 
-	//Voy a escribir en los dos jugadores y registrar el tiro
-	//No quiero que me lo saquen mientras tiro, ver si es posible
-	mutexJugadores[t_id].wlock();
-	mutexJugadores[s_id].wlock();
-
 	if (this->jugadores[s_id] == NULL || this->jugadores[t_id] == NULL) {
 		mutexJugando.runlock();
-		mutexJugadores[t_id].wunlock();
-		mutexJugadores[s_id].wunlock();
 		return -ERROR_JUGADOR_INEXISTENTE;	
 	}
 	
 	int retorno = -ERROR_ETA_NO_TRANSCURRIDO;
 
-	//Rlock al tiro, no quiero que me lo modifiquen mientras hago el tiro
-	mutexTiros[s_id].rlock();
+	mutexTiros[s_id].wlock();
 
 	if (this->tiros[s_id].es_posible_tocar()) {
+		mutexJugadores[t_id].wlock();
+		mutexJugadores[s_id].wlock();
+
 		int x = this->tiros[s_id].x;
 		int y = this->tiros[s_id].y;
 		bool murio = false;
@@ -316,21 +310,21 @@ int Modelo::tocar(int s_id, int t_id) {
 			this->tiros[s_id].estado = TIRO_LIBRE;
 			Evento evento(s_id, t_id, x, y, retorno);
 
-
+			//Evento para el tirado
+			mutexEventos[t_id].wlock();
 			this->eventos[t_id].push(evento);
+			mutexEventos[t_id].wunlock();
+
 			//Evento para el tirador
 			this->eventos[s_id].push(evento);
 
-			if(murio){
-				//Voy a escribir y checkear la cantidad de jugadores, WLock
+			if(murio) {
 				mutexCantidadJugadores.wlock();
-
 				this->cantidad_jugadores--;
 				if(this->cantidad_jugadores == 1){
                     printf("Dale viejo!\n");
 					this->finalizar(); 
 				}
-
 				mutexCantidadJugadores.wunlock();
 			}
 		}
@@ -342,12 +336,15 @@ int Modelo::tocar(int s_id, int t_id) {
 			this->jugadores[s_id]->agregar_puntaje(PUNTAJE_TOCADO);
 		} else if (retorno == EMBARCACION_RESULTADO_AGUA_H) {
 			this->jugadores[s_id]->agregar_puntaje(PUNTAJE_MAGALLANES);
-		} 
+		}
+
+		mutexJugadores[t_id].wunlock();
+		mutexJugadores[s_id].wunlock();
 	}
-	mutexJugadores[t_id].wunlock();
-	mutexJugadores[s_id].wunlock();
-	mutexTiros[s_id].runlock();
+
+	mutexTiros[s_id].wunlock();
 	mutexJugando.runlock();
+
 	return retorno;
 }
 
@@ -394,26 +391,22 @@ Evento Modelo::dameEvento(int s_id) {
 
 /** chequear si hay eventos nuevos para un jugador */
 Evento Modelo::actualizar_jugador(int s_id) {
-	printf("Consigo lock para el evento actualizar_jugador \n");
-
-	//Voy a escribir en las colas dentro de tiros (Fijarse si hay algo mejor)
-	mutexEventos[this->tiros[s_id].t_id].wlock();
 	mutexEventos[s_id].wlock();
+
 	int tocado = this->tocar(s_id, this->tiros[s_id].t_id);
-	//Ya no se usa más hayEventos, se copia el código para poner un wlock
-    if (this->eventos[s_id].size() > 0) {
-    	Evento retorno = this->eventos[s_id].front();
+
+	// En lugar de llamar a hayEventos (como en el código mono-thread original)
+	// verificamos acá mismo si la cola de eventos está vacía, porque hayEventos
+	// ahora realiza un read-lock sobre la cola de eventos, pero ésta ya está
+	// protegida con un write-lock al comienzo de actualizar_jugador.
+	if (this->eventos[s_id].size() > 0) {
+		Evento retorno = this->eventos[s_id].front();
 		this->eventos[s_id].pop();
-		printf("Devuelvo lock para el evento actualizar_jugador \n");
-		mutexEventos[this->tiros[s_id].t_id].wunlock();
+
 		mutexEventos[s_id].wunlock();
 		return retorno;
-    } else {
-    	printf("Devuelvo lock para el evento actualizar_jugador \n");
-		mutexEventos[this->tiros[s_id].t_id].wunlock();
+	} else {
 		mutexEventos[s_id].wunlock();
 		return Evento(s_id, -1, 0, 0, -tocado);
 	}
 }
-
-
