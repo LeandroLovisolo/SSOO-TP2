@@ -1,51 +1,59 @@
-#include "RWLock.h"
+#include <RWLock.h>
 
-//Solucion readers-writers no starvation de little book of semaphores, pag 79
+#define wait(x)   pthread_mutex_lock(&x)
+#define signal(x) pthread_mutex_unlock(&x)
+
+// Lock readers-writers sin inanición, tomado de The Little Book of Semaphores,
+// versión 2.1.5, por Allen B. Downey; página 79.
 
 RWLock::RWLock() {
-	//Inicializo el mutex
-	pthread_mutex_init(&turnstileMutex, NULL);
-	pthread_mutex_init(&roomEmptyMutex, NULL);
-	leyendo = 0;
-	pthread_mutex_init(&leyendoMutex, NULL);
-}
-
-void RWLock::rlock() {
-	pthread_mutex_lock(&turnstileMutex);
-	pthread_mutex_unlock(&turnstileMutex);
-
-	pthread_mutex_lock(&leyendoMutex);
-	if(leyendo == 0) {
-		pthread_mutex_lock(&roomEmptyMutex);
-	}
-	leyendo++;
-	pthread_mutex_unlock(&leyendoMutex);
-
-}
-
-void RWLock::wlock() {
-	//Bloqueo el molinete y room empty
-	pthread_mutex_lock(&turnstileMutex);
-	pthread_mutex_lock(&roomEmptyMutex);
-}
-
-void RWLock::runlock() {
-	pthread_mutex_unlock(&roomEmptyMutex);
-	pthread_mutex_lock(&leyendoMutex);
-	leyendo--;
-	if(leyendo == 0) {
-		pthread_mutex_unlock(&roomEmptyMutex);
-	}
-	pthread_mutex_unlock(&leyendoMutex);
-}
-
-void RWLock::wunlock() {
-	pthread_mutex_unlock(&turnstileMutex);
-	pthread_mutex_unlock(&roomEmptyMutex);
+	pthread_mutex_init(&turnstile, NULL);
+	pthread_mutex_init(&room_empty, NULL);
+	pthread_mutex_init(&lightswitch, NULL);
+	counter = 0;
 }
 
 RWLock::~RWLock() {
-	pthread_mutex_destroy(&turnstileMutex);
-	pthread_mutex_destroy(&leyendoMutex);
-	pthread_mutex_destroy(&roomEmptyMutex);
+	pthread_mutex_destroy(&turnstile);
+	pthread_mutex_destroy(&lightswitch);
+	pthread_mutex_destroy(&room_empty);
+}
+
+void RWLock::rlock() {
+	wait(turnstile);
+	signal(turnstile);
+	lock_lightswitch();
+}
+
+void RWLock::runlock() {
+	signal(room_empty);
+	unlock_lightswitch();
+}
+
+void RWLock::wlock() {
+	wait(turnstile);
+	wait(room_empty);
+}
+
+void RWLock::wunlock() {
+	signal(turnstile);
+	signal(room_empty);
+}
+
+void RWLock::lock_lightswitch() {
+	wait(lightswitch);
+	if(counter == 0) {
+		wait(room_empty);
+	}
+	counter++;
+	signal(lightswitch);
+}
+
+void RWLock::unlock_lightswitch() {
+	wait(lightswitch);
+	counter--;
+	if(counter == 0) {
+		signal(room_empty);
+	}
+	signal(lightswitch);
 }

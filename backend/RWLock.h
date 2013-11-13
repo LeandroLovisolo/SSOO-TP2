@@ -1,6 +1,6 @@
 #ifndef RWLock_h
 #define RWLock_h
-#include <iostream>
+
 #include <pthread.h>
 
 class RWLock {
@@ -8,15 +8,18 @@ class RWLock {
         RWLock();
         ~RWLock();
         void rlock();
-        void wlock();
         void runlock();
+        void wlock();
         void wunlock();
 
     private:
-        unsigned leyendo;
-    	pthread_mutex_t turnstileMutex;
-    	pthread_mutex_t roomEmptyMutex;
-        pthread_mutex_t leyendoMutex;
+        pthread_mutex_t turnstile;
+        pthread_mutex_t room_empty;
+        pthread_mutex_t lightswitch;
+        unsigned counter;
+
+        void lock_lightswitch();
+        void unlock_lightswitch();
 };
 
 #endif
