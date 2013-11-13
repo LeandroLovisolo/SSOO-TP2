@@ -29,17 +29,17 @@ class Modelo {
 		Evento	actualizar_jugador(int t_id);	/* devuelve el proximo evento del jugador */
         int     hayEventos(int s_id);
         Evento  dameEvento(int s_id);
-		RWLock					*mutexJugadores;
 	
 #ifdef DEBUG
 		void	print();
 #endif
 	private:
-		RWLock					mutexJugando;
-		RWLock					mutexCantidadJugadores;
-		RWLock					mutexJugadoresListos;
-		RWLock					*mutexEventos;
-		RWLock					*mutexTiros;
+		RWLock					lock_cantidad_jugadores;
+		RWLock					lock_jugadores_listos;
+		RWLock					*locks_jugadores;
+		RWLock					*locks_tiros;
+		RWLock					*locks_eventos;
+		RWLock					lock_jugando;
 
 		int						cantidad_jugadores;				/* cantidad de jugadores inscriptos */
 		int						jugadores_listos;				/* cantidad de jugadores ya ubicados */
