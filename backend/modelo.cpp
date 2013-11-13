@@ -401,15 +401,14 @@ Evento Modelo::actualizar_jugador(int s_id) {
 	// verificamos acá mismo si la cola de eventos está vacía, porque hayEventos
 	// ahora realiza un read-lock sobre la cola de eventos, pero ésta ya está
 	// protegida con un write-lock al comienzo de actualizar_jugador.
+	mutexEventos[s_id].wlock();
 	if (this->eventos[s_id].size() > 0) {
-		mutexEventos[s_id].wlock();
 		Evento retorno = this->eventos[s_id].front();
 		mutexEventos[s_id].wunlock();
-
 		this->eventos[s_id].pop();
-
 		return retorno;
 	} else {
+		mutexEventos[s_id].wunlock();
 		return Evento(s_id, -1, 0, 0, -tocado);
 	}
 }
