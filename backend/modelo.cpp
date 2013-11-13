@@ -142,7 +142,6 @@ error Modelo::finalizar() {
 	if (this->jugando != DISPAROS) return -ERROR_JUEGO_NO_COMENZADO;
 	for (int i = 0; i < max_jugadores; i++) {
 		if (this->jugadores[i] != NULL) {
-			//Mutex en eventos?
 			Evento evento(0, i, 0, 0, EVENTO_END);
 
 			mutexEventos[i].wlock();
