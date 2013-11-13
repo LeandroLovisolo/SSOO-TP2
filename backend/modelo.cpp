@@ -166,6 +166,13 @@ error Modelo::ack(int s_id){
 }
 
 bool Modelo::termino() {
+	mutexJugando.rlock();
+	if(this->jugando == SETUP) {
+		mutexJugando.runlock();
+		return false;
+	}
+	mutexJugando.runlock();
+
     for(int i = 0; i < max_jugadores; i++){
     	mutexJugadores[i].rlock();
         if(!this->jugadores[i]->termino()) {
