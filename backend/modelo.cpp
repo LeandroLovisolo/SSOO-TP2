@@ -378,15 +378,17 @@ int Modelo::hayEventos(int s_id) {
 }
 
 Evento Modelo::dameEvento(int s_id) {
-	//Lock para la cola de eventos asociada al usuario s_id
-	printf("Consigo lock para el evento dameEvento \n");
 	mutexEventos[s_id].wlock();
-	//Ya no se usa más hayEventos, se copia el código para poner un wlock
+
+	// En lugar de llamar a hayEventos (como en el código mono-thread original)
+	// verificamos acá mismo si la cola de eventos está vacía, porque hayEventos
+	// ahora realiza un read-lock sobre la cola de eventos, pero ésta ya está
+	// protegida con un write-lock al comienzo de dameEvento.
 	assert(this->eventos[s_id].size() > 0);
 	Evento retorno = this->eventos[s_id].front();
 	this->eventos[s_id].pop();
+
 	mutexEventos[s_id].wunlock();
-	printf("Devuelvo lock para el evento dameEvento \n");
     return retorno;
 }
 
