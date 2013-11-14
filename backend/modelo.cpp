@@ -81,7 +81,7 @@ error Modelo::ubicar(int t_id, int * xs, int *  ys, int tamanio) {
 
 	int retorno = this->jugadores[t_id]->ubicar(xs, ys, tamanio);
 	if (retorno != ERROR_NO_ERROR){
-		retorno = this->borrar_barcos(t_id);
+		this->borrar_barcos(t_id);
 	}
 
 	//Si el jugador esta listo
