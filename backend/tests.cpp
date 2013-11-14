@@ -7,10 +7,10 @@
 using namespace std;
 
 // Tiempo de espera en microsegundos del método RWLockTest::esperar().
-#define TIEMPO_DE_ESPERA 1000
+#define TIEMPO_DE_ESPERA 10000
 
 // Número de iteraciones del test de inanición de escritura.
-#define NUM_TESTS_DE_INANICION 10000
+#define NUM_TESTS_DE_INANICION 1000
 
 ///////////////////////////////////////////////////////////////////////////////
 // Fixture                                                                   //
@@ -20,7 +20,7 @@ typedef enum { LECTURA, ESCRITURA } evento;
 
 // Se crea una nueva instancia de esta clase para cada test.
 
-class RWLockTest : public ::testing::Test {
+class RWLockTest : public testing::Test {
 public:
 	RWLock lock;
 	vector<evento> eventos;
@@ -121,22 +121,30 @@ TEST_F(RWLockTest, UnaSolaEscrituraALaVez) {
 ///////////////////////////////////////////////////////////////////////////////
 
 TEST_F(RWLockTest, NoSeEscribeMientrasSeLee) {
-	// Obtengo lock de lectura.
-	lock.rlock();
+	// Número de lecturas que se realizan antes de escribir
+	int n = 3;
+
+	// Obtengo locks de lectura.
+	for(int i = 0; i < n; i++) lock.rlock();
 
 	// Creo un thread que intenta escribir.
 	pthread_t writer;
 	pthread_create(&writer, NULL, write, this);
 
-	// Le doy tiempo al thread para ejecutarse.
-	esperar();
+	for(int i = 0; i < n; i++) {
+		// Le doy tiempo al thread para ejecutarse.
+		esperar();
 
-	// Verifico que el thread no haya podido realizar la escritura,
-	// pues habíamos tomado un lock de lectura.
-	EXPECT_EQ(0, eventos.size());
+		// Verifico que el thread no haya podido realizar la escritura,
+		// pues todavía se tiene tomado al menos un lock de lectura.
+		EXPECT_EQ(0, eventos.size());
 
-	// Libero el lock de lectura y espero que termine el thread.
-	lock.runlock();
+		// Libero el i-ésimo lock de lectura.
+		lock.runlock();
+	}
+
+	// Luego de haber liberado el último lock de lectura, el thread de escritura
+	// ahora debería desbloquearse. Espero que termine el thread.	
 	pthread_join(writer, NULL);
 
 	// Verifico que el thread ahora sí haya podido escribir.
@@ -175,6 +183,22 @@ TEST_F(RWLockTest, NoSeLeeMientrasSeEscribe) {
 ///////////////////////////////////////////////////////////////////////////////
 
 TEST_F(RWLockTest, NoOcurreInanicionDeEscritura) {
+	// Este test verifica que si hay al menos un read lock tomado al momento
+	// de solicitarse un write lock, ocurre que:
+	//
+	// 1. El proceso que solicita el write lock queda bloqueado.
+	// 2. Luego que dicho proceso queda bloqueado, cualquier otro proceso que
+	//    solicita read lock también queda bloqueado.
+	// 3. El proceso del punto 1. se desbloquea cuando se liberan los read
+	//    locks que se encontraban tomados originalmente.
+	// 4. Los procesos del punto 2. se desbloquean después que el proceso del
+	//    punto 1. libera su write lock.
+	//
+	// De esta manera nos aseguramos que todas las solicitudes de write lock
+	// bloqueadas eventualmente se desbloqueen, por más que mientras que éstas
+	// permanecen bloqueadas se solicite un número de read locks tan grande
+	// como uno quiera.
+
 	// Imprimo estimativo del tiempo de ejecución del test.
 	int t = NUM_TESTS_DE_INANICION * TIEMPO_DE_ESPERA * 2 / 1000000;
 	cout << "Demora aproximadamente " << t << " segundos." << endl;
@@ -188,12 +212,19 @@ TEST_F(RWLockTest, NoOcurreInanicionDeEscritura) {
 		pthread_create(&writer, NULL, write, this);
 		esperar();
 
+		// Verifico que el thread que intenta escribir haya quedado bloqueado,
+		// pues habíamos tomado un lock de lectura.
+		EXPECT_EQ(0, eventos.size()) << eventos_str();
+
 		// Creo un thread que intenta leer y le doy tiempo a ejecutarse.
 		pthread_t reader;
 		pthread_create(&reader, NULL, read, this);
 		esperar();
 
-		// Verifico que ambos threads hayan quedado bloqueados.
+		// Verifico que el thread que intenta leer haya quedado bloqueado, pues
+		// la solicitud de write lock del thread anterior quedó bloqueada, y
+		// cualquier solicitud posterior de read lock debería quedar bloqueada
+		// hasta que se libere el write lock del proceso que escribe.
 		EXPECT_EQ(0, eventos.size()) << eventos_str();
 
 		// Libero el lock de lectura y espero que terminen los threads.
@@ -201,7 +232,8 @@ TEST_F(RWLockTest, NoOcurreInanicionDeEscritura) {
 		pthread_join(writer, NULL);	
 		pthread_join(reader, NULL);
 
-		// Verifico que los threads se hayan desbloqueado en el orden correcto.
+		// Verifico que primero se haya ejecutado el thread que escribe y luego
+		// el thread que lee, en ése orden.
 		EXPECT_EQ(ESCRITURA, eventos[0]) << eventos_str();
 		EXPECT_EQ(LECTURA, eventos[1])   << eventos_str();
 
