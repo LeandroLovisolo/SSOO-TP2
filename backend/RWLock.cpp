@@ -26,7 +26,6 @@ void RWLock::rlock() {
 }
 
 void RWLock::runlock() {
-	signal(room_empty);
 	unlock_lightswitch();
 }
 
@@ -42,10 +41,10 @@ void RWLock::wunlock() {
 
 void RWLock::lock_lightswitch() {
 	wait(lightswitch);
-	if(counter == 0) {
+	counter++;
+	if(counter == 1) {
 		wait(room_empty);
 	}
-	counter++;
 	signal(lightswitch);
 }
 
