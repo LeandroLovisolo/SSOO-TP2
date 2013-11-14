@@ -24,9 +24,9 @@
 #include <decodificador.h>
 #include <globales.h>
 
-#define MAX_MSG_LENGTH 4096
-#define MAX_JUGADORES 100
-#define MAX_CONTROLADORES 2
+#define MAX_MSG_LENGTH    4096
+#define MAX_JUGADORES     1024
+#define MAX_CONTROLADORES 1024
 
 /* Setea un socket como no bloqueante */
 int no_bloqueante(int fd) {
@@ -106,10 +106,11 @@ void *controlador(void *nro_controlador_ptr) {
 }
 
 /* Acepta todas las conexiones entrantes */
-void aceptar_controladores(pthread_t *threads) {
+void* aceptar_controladores(void *arg) {
+	pthread_t threads[MAX_CONTROLADORES];
 	struct sockaddr_in remote;
-
 	int t;
+
 	for (int i = 0; i < MAX_CONTROLADORES; i++) {
 		t = sizeof(remote);
 		if ((s_controladores[i] = accept(sock_controladores, (struct sockaddr*) &remote, (socklen_t*) &t)) == -1) {
@@ -125,6 +126,8 @@ void aceptar_controladores(pthread_t *threads) {
 				sizeof(int));    /* length of option value */
 		pthread_create(&threads[i], NULL, controlador, new int(i));
 	}
+
+	return NULL;
 }
 
 /* Para atender al i-esimo jugador */
@@ -300,24 +303,20 @@ int main(int argc, char * argv[]) {
 
 	printf("Corriendo...\n");
 
+	// Atender controladores
+	abrir_socket_controladores();
+	pthread_t thread_aceptar_controladores;
+	pthread_create(&thread_aceptar_controladores, NULL, aceptar_controladores, NULL);
+
 	// Atender jugadores
 	abrir_socket_jugadores(port);
 	pthread_t threads_jugadores[n];
 	acceptar_jugadores(threads_jugadores);
-	
-	// Atender controladores
-	abrir_socket_controladores();
-	pthread_t threads_controladores[MAX_CONTROLADORES];
-	aceptar_controladores(threads_controladores);
 
 	// Esperar a que terminen todos los threads
     for (int i = 0; i < n; ++i) {
     	pthread_join(threads_jugadores[i], NULL);
     	printf("Joineó el thread del jugador %d\n", i);
-    }
-    for (int i = 0; i < MAX_CONTROLADORES; ++i) {
-    	pthread_join(threads_controladores[i], NULL);
-    	printf("Joineó el thread del controlador %d\n", i);
     }
 
     printf("Termino el juego, cerrando\n");
