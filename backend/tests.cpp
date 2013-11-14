@@ -31,7 +31,7 @@ protected:
 	}
 
 	// Convierte el vector de eventos a texto (para imprimir por consola.)
-	string eventos_str() {
+	string eventos_to_str() {
 		string s = "eventos = [";
 		for(size_t i = 0; i < eventos.size(); i++) {
 			if(i > 0) s += ", ";
@@ -214,7 +214,7 @@ TEST_F(RWLockTest, NoOcurreInanicionDeEscritura) {
 
 		// Verifico que el thread que intenta escribir haya quedado bloqueado,
 		// pues habíamos tomado un lock de lectura.
-		EXPECT_EQ(0, eventos.size()) << eventos_str();
+		EXPECT_EQ(0, eventos.size()) << eventos_to_str();
 
 		// Creo un thread que intenta leer y le doy tiempo a ejecutarse.
 		pthread_t reader;
@@ -225,7 +225,7 @@ TEST_F(RWLockTest, NoOcurreInanicionDeEscritura) {
 		// la solicitud de write lock del thread anterior quedó bloqueada, y
 		// cualquier solicitud posterior de read lock debería quedar bloqueada
 		// hasta que se libere el write lock del proceso que escribe.
-		EXPECT_EQ(0, eventos.size()) << eventos_str();
+		EXPECT_EQ(0, eventos.size()) << eventos_to_str();
 
 		// Libero el lock de lectura y espero que terminen los threads.
 		lock.runlock();
@@ -234,8 +234,8 @@ TEST_F(RWLockTest, NoOcurreInanicionDeEscritura) {
 
 		// Verifico que primero se haya ejecutado el thread que escribe y luego
 		// el thread que lee, en ése orden.
-		EXPECT_EQ(ESCRITURA, eventos[0]) << eventos_str();
-		EXPECT_EQ(LECTURA, eventos[1])   << eventos_str();
+		EXPECT_EQ(ESCRITURA, eventos[0]) << eventos_to_str();
+		EXPECT_EQ(LECTURA, eventos[1])   << eventos_to_str();
 
 		// Limpio el vector de eventos para poder repetir el test.
 		eventos.clear();
