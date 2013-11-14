@@ -44,6 +44,10 @@
     \vspace{0.5em}%
 }
 
+% Llamada a función para usar así: \Fn{Foo}{bar, baz}.
+% Produce \textsc{Foo}$(bar, baz)$.
+\newcommand{\Fn}[2]{\textsc{#1}$(#2)$}
+
 % Conectivo 'in' para usar así: \ForAll{$foo$ \In $bar$}
 \newcommand{\In}{\textbf{in} }
 
@@ -144,14 +148,73 @@ Lautaro José Petaccio    & 443/11 & lausuper@gmail.com\\
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Readers-Writer Lock                                                       %%
+%% Readers-Writers Lock                                                      %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\section{Readers-Writer Lock}
+\section{Readers-Writers Lock}
 
-Pendiente
+Tomamos la implementación del readers-writers lock libre de inanición de escritura presentada en el libro \textit{The Little Book of Semaphores}, versión 2.1.5, por Allen B. Downey.
 
+Este libro utiliza la analogía de una habitación en la que pueden haber o varios lectores a la vez y ningún escritor, o un único escritor por vez y ningún lector; y un interruptor que prende o apaga la luz de la habitación para señalar si ésta está ocupada o no.
+
+Durante la creación del lock se inicializan las siguientes variables:
+
+\begin{pseudo}
+    \State $readers \leftarrow 0$ \Comment{Cantidad de \textbf{lectores} actualmente en la habitación.}
+    \State $turnstile \leftarrow$ \Fn{Semaphore}{1} \Comment{Molinete que deja pasar lectores de a uno por vez.}
+    \State $room\_empty \leftarrow$ \Fn{Semaphore}{1} \Comment{Vale 1 si la habitación está vacía, o 0 en caso contrario.}
+    \State $readers\_mutex \leftarrow$ \Fn{Semaphore}{1} \Comment{Mutex para acceder a la variable $readers$.}
+\end{pseudo}
+
+Las operaciones del lock quedan definidas como a continuación.
+
+\begin{pseudo}
+    \Procedure{Read-Lock}{}
+        \State \Fn{Wait}{turnstile} \Comment{Paso por el molinete, un lector a la vez.}
+        \State \Fn{Signal}{turnstile}
+        \State
+        \State \Fn{Wait}{readers\_mutex}
+        \State $readers \leftarrow readers + 1$ \Comment{Aumento en 1 la cantidad de lectores.}
+        \If{readers = 1} \Comment{¿Soy el primer lector en llegar?}
+            \State \Fn{Wait}{room\_empty} \Comment{Espero a que se vacíe la habitación, luego entro y prendo al luz.}
+        \EndIf
+        \State \Fn{Signal}{readers\_mutex}
+    \EndProcedure
+\end{pseudo}
+
+\begin{pseudo}
+    \Procedure{Read-Unlock}{}
+        \State \Fn{Wait}{readers\_mutex}
+        \State $readers \leftarrow readers - 1$ \Comment{Decremento en 1 la cantidad de lectores.}
+        \If{readers = 0} \Comment{¿Soy el último lector en irme?}
+            \State \Fn{Signal}{room\_empty} \Comment{Apago la luz al salir.}
+        \EndIf
+        \State \Fn{Signal}{readers\_mutex}
+    \EndProcedure
+\end{pseudo}
+
+\begin{pseudo}
+    \Procedure{Write-Lock}{}
+        \State \Fn{Wait}{turnstile} \Comment{Bloqueo el molinete para que no ingresen nuevos lectores.}
+        \State \Fn{Wait}{room\_empty} \Comment{Espero a que se vacíe la habitación; luego entro y prendo la luz.}
+    \EndProcedure
+\end{pseudo}
+
+\begin{pseudo}
+    \Procedure{Write-Unlock}{}
+        \State \Fn{Signal}{turnstile} \Comment{Permito el ingreso a lectores.}
+        \State \Fn{Signal}{room\_empty} \Comment{Apago la luz al salir (señalo que la habitación está vacía.)}
+    \EndProcedure
+\end{pseudo}
+
+Cuando llega un lector (\Fn{Read-Lock}{}), éste pasa exitosamente por el molinete (\Fn{Wait}{turnstile}) pues el semáforo $turnstile$ vale inicialmente 1 y restaura el valor original del semáforo (\Fn{Signal}{turnstile}) para que subsiguientes lectores puedan ingresar. Luego incrementa en 1 la cantidad de lectores, y si resulta que es el primer lector en ingresar, espera que se vacíe la habitación en caso de estar ocupada por algún escritor (\Fn{Wait}{room\_empty}) y prende la luz al entrar ($room\_empty$ vale 0 luego del \textsc{Wait}.)
+
+Al retirarse (\Fn{Read-Unlock}{}), el lector decrementa en 1 la cantidad de lectores, y en caso de ser el último, apaga la luz al salir (\Fn{Signal}{room\_empty}.)
+
+Cuando llega un escritor (\Fn{Write-Lock}{}), éste bloquea el molinete para que no ingresen nuevos lectores (\Fn{Wait}{turnstile}) y en caso de que haya algún lector en la habitación, espera hasta que se retire el último lector (\Fn{Wait}{room\_empty}) y prende la luz al entrar ($room\_empty$ vale 0 luego del \textsc{Wait}.) Al bloquear el ingreso a nuevos lectores \textbf{nos aseguramos que no ocurra inanición de escritura}, pues de lo contrario podría darse el caso de tener un número muy grande de lectores ingresando constantemente a la habitación, haciendo que ésta nunca quede vacía.
+
+Finalmente, al retirarse un escritor (\Fn{Read-Unlock}{}), éste desbloquea el molinete para permitir el paso a los lectores (\Fn{Signal}{turnstile}) y apaga la luz al salir (\Fn{Signal}{room\_empty}). 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Server                                                                    %%
