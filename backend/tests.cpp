@@ -10,7 +10,7 @@ using namespace std;
 #define TIEMPO_DE_ESPERA 10000
 
 // Número de iteraciones del test de inanición de escritura.
-#define NUM_TESTS_DE_INANICION 1000
+#define NUM_TESTS_DE_INANICION 250
 
 ///////////////////////////////////////////////////////////////////////////////
 // Fixture                                                                   //
@@ -71,7 +71,7 @@ void* write(void* arg) {
 // TEST: Pueden realizarse varias lecturas a la vez                          //
 ///////////////////////////////////////////////////////////////////////////////
 
-TEST_F(RWLockTest, VariasLecturasALaVez) {
+TEST_F(RWLockTest, AdmiteVariasLecturasALaVez) {
 	// Obtengo lock para más de una lectura.
 	lock.rlock();
 	lock.rlock();
@@ -90,7 +90,7 @@ TEST_F(RWLockTest, VariasLecturasALaVez) {
 // TEST: Se realiza una sola escritura a la vez                              //
 ///////////////////////////////////////////////////////////////////////////////
 
-TEST_F(RWLockTest, UnaSolaEscrituraALaVez) {
+TEST_F(RWLockTest, AdmiteUnaSolaEscrituraALaVez) {
 	// Obtengo lock de escritura.
 	lock.wlock();
 
@@ -201,7 +201,7 @@ TEST_F(RWLockTest, NoOcurreInanicionDeEscritura) {
 
 	// Imprimo estimativo del tiempo de ejecución del test.
 	int t = NUM_TESTS_DE_INANICION * TIEMPO_DE_ESPERA * 2 / 1000000;
-	cout << "Demora aproximadamente " << t << " segundos." << endl;
+	cout << "Demora aproximadamente " << t << " segundos...\r" << flush;
 
 	for(int i = 0; i < NUM_TESTS_DE_INANICION; i++) {
 		// Obtengo lock de lectura.
