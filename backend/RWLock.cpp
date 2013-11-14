@@ -13,14 +13,14 @@
 RWLock::RWLock() {
 	pthread_mutex_init(&turnstile, NULL);
 	pthread_mutex_init(&room_empty, NULL);
-	pthread_mutex_init(&lightswitch, NULL);
-	counter = 0;
+	pthread_mutex_init(&readers_mutex, NULL);
+	readers = 0;
 }
 
 RWLock::~RWLock() {
 	pthread_mutex_destroy(&turnstile);
-	pthread_mutex_destroy(&lightswitch);
 	pthread_mutex_destroy(&room_empty);
+	pthread_mutex_destroy(&readers_mutex);
 }
 
 void RWLock::rlock() {
@@ -28,17 +28,27 @@ void RWLock::rlock() {
 	wait(turnstile);
 	signal(turnstile);
 	#endif
-	lock_lightswitch();
-}
+
+	wait(readers_mutex);
+	readers++;
+	if(readers == 1) {
+		wait(room_empty);
+	}
+	signal(readers_mutex);}
 
 void RWLock::runlock() {
-	unlock_lightswitch();
-}
+	wait(readers_mutex);
+	readers--;
+	if(readers == 0) {
+		signal(room_empty);
+	}
+	signal(readers_mutex);}
 
 void RWLock::wlock() {
 	#ifdef SIN_INANICION
 	wait(turnstile);
 	#endif
+
 	wait(room_empty);
 }
 
@@ -46,23 +56,6 @@ void RWLock::wunlock() {
 	#ifdef SIN_INANICION
 	signal(turnstile);
 	#endif
+
 	signal(room_empty);
-}
-
-void RWLock::lock_lightswitch() {
-	wait(lightswitch);
-	counter++;
-	if(counter == 1) {
-		wait(room_empty);
-	}
-	signal(lightswitch);
-}
-
-void RWLock::unlock_lightswitch() {
-	wait(lightswitch);
-	counter--;
-	if(counter == 0) {
-		signal(room_empty);
-	}
-	signal(lightswitch);
 }

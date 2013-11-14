@@ -15,11 +15,8 @@ class RWLock {
     private:
         pthread_mutex_t turnstile;
         pthread_mutex_t room_empty;
-        pthread_mutex_t lightswitch;
-        unsigned counter;
-
-        void lock_lightswitch();
-        void unlock_lightswitch();
+        pthread_mutex_t readers_mutex;
+        unsigned readers;
 };
 
 #endif
