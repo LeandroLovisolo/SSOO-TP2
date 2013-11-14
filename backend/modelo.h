@@ -6,7 +6,7 @@
 #include <evento.h>
 #include <tiro.h>
 #include <queue>
-#include "RWLock.h"
+#include <RWLock.h>
 
 enum EstadoJuego {SETUP, DISPAROS, FINALIZADO};
 
