@@ -187,7 +187,7 @@ Las operaciones del lock quedan definidas como a continuación.
     \Procedure{Read-Unlock}{}
         \State \Fn{Wait}{readers\_mutex}
         \State $readers \leftarrow readers - 1$ \Comment{Decremento en 1 la cantidad de lectores.}
-        \If{readers = 0} \Comment{¿Soy el último lector en irme?}
+        \If{readers = 0} \Comment{¿Soy el último lector en irse?}
             \State \Fn{Signal}{room\_empty} \Comment{Apago la luz al salir.}
         \EndIf
         \State \Fn{Signal}{readers\_mutex}
