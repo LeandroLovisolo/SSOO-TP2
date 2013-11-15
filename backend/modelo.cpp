@@ -13,17 +13,18 @@ Modelo::Modelo(int njugadores, int tamtablero, int tamtotalbarcos){
 	tamanio_total_barcos = tamtotalbarcos;
 	
 	this->jugadores = new Jugador*[max_jugadores];
-	this->eventos = new std::queue<Evento>[max_jugadores];
-	this->locks_eventos = new RWLock[max_jugadores];
-	this->tiros = new Tiro[max_jugadores];
-	this->locks_jugadores = new RWLock[max_jugadores];
-	this->locks_tiros = new RWLock[max_jugadores];
 	for (int i = 0; i < max_jugadores; i++) {
 		this->jugadores[i] = NULL;
 	}
+	this->eventos = new std::queue<Evento>[max_jugadores];
+	this->tiros = new Tiro[max_jugadores];
 	this->cantidad_jugadores = 0;
 	this->jugadores_listos = 0;
 	this->jugando = SETUP;
+
+	this->locks_eventos = new RWLock[max_jugadores];
+	this->locks_jugadores = new RWLock[max_jugadores];
+	this->locks_tiros = new RWLock[max_jugadores];
 
 }
 Modelo::~Modelo() {
@@ -32,13 +33,13 @@ Modelo::~Modelo() {
 			delete this->jugadores[i];
 		}
 	}
+	delete[] this->jugadores;
+	delete[] this->eventos;
+	delete[] this->tiros;
+
 	delete[] this->locks_eventos;
 	delete[] this->locks_jugadores;
 	delete[] this->locks_tiros;
-
-	delete[] this->jugadores;
-	delete[] this->tiros;
-	delete[] this->eventos;
 }
 
 /** Registra un nuevo jugador en la partida */
@@ -71,11 +72,16 @@ int Modelo::agregarJugador(std::string nombre) {
 	Sino quita todos los barcos del usuario.
 */
 error Modelo::ubicar(int t_id, int * xs, int *  ys, int tamanio) {
-	if (this->jugando != SETUP) return -ERROR_JUEGO_EN_PROGRESO;
+	lock_jugando.wlock();
+	if (this->jugando != SETUP) {
+		lock_jugando.wunlock();
+		return -ERROR_JUEGO_EN_PROGRESO;
+	}
 
 	locks_jugadores[t_id].wlock();
 	if (this->jugadores[t_id] == NULL) {
 		locks_jugadores[t_id].wunlock();
+		lock_jugando.wunlock();
 		return -ERROR_JUGADOR_INEXISTENTE;
 	}
 
@@ -91,13 +97,14 @@ error Modelo::ubicar(int t_id, int * xs, int *  ys, int tamanio) {
 
 		//Si ya estan listos todos los jugadores
 		if(this->jugadores_listos == max_jugadores) {
-			this->empezar();
+			this->_empezar();
 			printf("Sale de empezar \n");
 		}
 		lock_jugadores_listos.wunlock();
 	}
 
 	locks_jugadores[t_id].wunlock();
+	lock_jugando.wunlock();
 	return retorno;
 }
 
@@ -118,6 +125,11 @@ error Modelo::borrar_barcos(int t_id) {
 */
 error Modelo::empezar() {
 	lock_jugando.wlock();
+	return _empezar();
+	lock_jugando.wunlock();
+}
+
+error Modelo::_empezar() {
 	if (this->jugando != SETUP) {
 		lock_jugando.wunlock();
 		return -ERROR_JUEGO_EN_PROGRESO;
@@ -131,10 +143,9 @@ error Modelo::empezar() {
 		}
 	}
 	this->jugando = DISPAROS;
-	lock_jugando.wunlock();
 	return ERROR_NO_ERROR;
-	
 }
+
 /** LLamado al finalizar la partida.
 	Se marca el juego como terminado y se le notifica a todos los participantes */
 error Modelo::finalizar() {

@@ -34,6 +34,8 @@ class Modelo {
 		void	print();
 #endif
 	private:
+		error   				_empezar();
+
 		RWLock					lock_cantidad_jugadores;
 		RWLock					lock_jugadores_listos;
 		RWLock					*locks_jugadores;
