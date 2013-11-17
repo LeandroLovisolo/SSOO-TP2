@@ -430,3 +430,9 @@ Evento Modelo::actualizar_jugador(int s_id) {
 		return Evento(s_id, -1, 0, 0, -tocado);
 	}
 }
+
+void Modelo::printPuntajes() {
+	for(int i = 0; i < jugadores_listos; i++) {
+		printf("Nombre: %s - Puntaje: %d\n", jugadores[i]->dame_nombre().c_str(), jugadores[i]->dame_puntaje());
+	}
+}

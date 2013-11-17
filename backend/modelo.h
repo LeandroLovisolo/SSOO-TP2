@@ -29,6 +29,7 @@ class Modelo {
 		Evento	actualizar_jugador(int t_id);	/* devuelve el proximo evento del jugador */
         int     hayEventos(int s_id);
         Evento  dameEvento(int s_id);
+		void	printPuntajes();
 	
 #ifdef DEBUG
 		void	print();

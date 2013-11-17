@@ -318,6 +318,10 @@ int main(int argc, char * argv[]) {
     	pthread_join(threads_jugadores[i], NULL);
     	printf("Joineó el thread del jugador %d\n", i);
     }
+    
+    // Imprimir los puntajes.
+	printf("Los puntajes finales son:\n");
+	model->printPuntajes();
 
     printf("Termino el juego, cerrando\n");
 
