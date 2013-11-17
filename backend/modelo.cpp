@@ -44,7 +44,11 @@ Modelo::~Modelo() {
 
 /** Registra un nuevo jugador en la partida */
 int Modelo::agregarJugador(std::string nombre) {
-	if (this->jugando != SETUP) return -ERROR_JUEGO_EN_PROGRESO;
+	lock_jugando.rlock();
+	if (this->jugando != SETUP) {
+		lock_jugando.runlock();
+		return -ERROR_JUEGO_EN_PROGRESO;
+	}
 
 	int nuevoid = 0;
 	bool agregado = false;
@@ -58,12 +62,16 @@ int Modelo::agregarJugador(std::string nombre) {
 		}
 		this->locks_jugadores[nuevoid].wunlock();
 	}
-	if(!agregado) return -ERROR_MAX_JUGADORES;
+	if(!agregado) {
+		lock_jugando.runlock();
+		return -ERROR_MAX_JUGADORES;
+	}
 
 	lock_cantidad_jugadores.wlock();
 	this->cantidad_jugadores++;
 	lock_cantidad_jugadores.wunlock();
-
+	
+	lock_jugando.runlock();
 	return nuevoid;
 }
 
@@ -125,13 +133,13 @@ error Modelo::borrar_barcos(int t_id) {
 */
 error Modelo::empezar() {
 	lock_jugando.wlock();
-	return _empezar();
+	error out = _empezar();
 	lock_jugando.wunlock();
+	return out;
 }
 
 error Modelo::_empezar() {
 	if (this->jugando != SETUP) {
-		lock_jugando.wunlock();
 		return -ERROR_JUEGO_EN_PROGRESO;
 	}
 	for (int i = 0; i < max_jugadores; i++) {
