@@ -265,7 +265,7 @@ Pendiente
 \subsection{Modelo::agregarJugador}
 
 \begin{pseudo}
-    \Procedure{Modelo::agregarJugador}{nombre}
+    \Procedure{Modelo::agregarJugador}{$nombre$}
         \State \Fn{rlock}{lock\_jugando}
         \If{$jugando \neq$ \texttt{SETUP}}
             \State \Fn{runlock}{lock\_jugando}
@@ -302,7 +302,7 @@ Pendiente
 \subsection{Modelo::ubicar}
 
 \begin{pseudo}
-    \Procedure{Modelo::ubicar}{t\_id, xs, ys, tamanio}
+    \Procedure{Modelo::ubicar}{$t\_id, xs, ys, tamanio$}
         \State \Fn{wlock}{lock\_jugando}
         \If{jugando $\neq$ \texttt{SETUP}}
             \State \Fn{wunlock}{lock\_jugando}
@@ -434,7 +434,7 @@ Pendiente
 \subsection{Modelo::quitarJugador}
 
 \begin{pseudo}
-    \Procedure{Modelo::quitarJugador}{s\_id}
+    \Procedure{Modelo::quitarJugador}{$s\_id$}
     	\State \Fn{rlock}{lock\_jugando}
     	\If{$jugando \neq$ \texttt{SETUP}}
     		\State \Fn{runlock}{lock\_jugando}
@@ -460,13 +460,59 @@ Pendiente
 
 \subsection{Modelo::apuntar}
 
-Pendiente
+\begin{pseudo}
+    \Procedure{apuntar}{$s\_id, t\_id, x, y, *eta$}
+        \State \Fn{rlock}{lock\_jugando}
+        \If{$jugando \neq$ \texttt{DISPAROS}}
+            \State \Fn{runlock}{lock\_jugando}
+            \State \PReturn{-\texttt{ERROR\_JUEGO\_NO\_COMENZADO}}
+        \EndIf
+        \State
+        \State \Fn{wlock}{locks\_jugadores[s\_id]}
+        \State \Fn{wlock}{locks\_jugadores[t\_id]}
+        \State
+        \If{$jugadores[s\_id] = $ \Null \POr $jugadores[t\_id] = $ \Null}
+            \State \Fn{runlock}{lock\_jugando}
+            \State \Fn{wunlock}{locks\_jugadores[s\_id]}
+            \State \Fn{wunlock}{locks\_jugadores[t\_id]}            
+            \State \PReturn{-\texttt{ERROR\_JUGADOR\_INEXISTENTE}}
+        \EndIf
+        \State
+        \If{$jugadores[s\_id].$\Fn{esta\_vivo}{}}
+            \State \Fn{runlock}{lock\_jugando}
+            \State \Fn{wunlock}{locks\_jugadores[s\_id]}
+            \State \Fn{wunlock}{locks\_jugadores[t\_id]}            
+            \State \PReturn{-\texttt{ERROR\_JUGADOR\_HUNDIDO}}        
+        \EndIf
+        \State
+        \State $retorno \leftarrow$ \texttt{RESULTADO\_APUNTADO\_DENEGADO}
+        \State
+        \State \Fn{wlock}{locks\_tiros[s\_id]}
+        \If{$tiros[s\_id].$\Fn{es\_posible\_apuntar}{}}
+            \State $retorno \leftarrow jugadores[t\_id].$\Fn{apuntar}{s\_id, x, y}
+            \If{$retorno = $ \texttt{RESULTADO\_APUNTADO\_ACEPTADO}}
+                \State $*eta \leftarrow tiros[s\_id].$\Fn{tirar}{t\_id, x, y}
+                \State $nuevoevento \leftarrow $ \Fn{evento}{s\_id, t\_id, x, y, \texttt{CASILLA\_EVENTO\_INCOMING}}
+                \State
+                \State \Fn{wlock}{locks\_eventos[t\_id]}
+                \State $eventos[t\_id].$\Fn{push}{nuevoevento}
+                \State \Fn{wunlock}{locks\_eventos[t\_id]}
+            \EndIf
+        \EndIf
+        \State \Fn{wunlock}{locks\_tiros[s\_id]}
+        \State
+        \State \Fn{wunlock}{locks\_jugadores[s\_id]}
+        \State \Fn{wunlock}{locks\_jugadores[t\_id]}
+        \State \Fn{runlock}{lock\_jugando}
+        \State \PReturn{retorno}
+    \EndProcedure
+\end{pseudo}
 
 
 \subsection{Modelo::tocar}
 
 \begin{pseudo}
-    \Procedure{tocar}{s\_id, t\_id}
+    \Procedure{tocar}{$s\_id, t\_id$}
         \State \Fn{wlock}{lock\_jugando}
         \If{$jugando \neq $ \texttt{DISPAROS}}
             \State \Fn{wunlock}{lock\_jugando}
