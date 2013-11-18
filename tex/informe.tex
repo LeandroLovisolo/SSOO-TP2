@@ -443,6 +443,9 @@ Si no se abriera este método en los dos casos mencionados, tendríamos un únic
     	\State \Fn{runlock}{lock\_jugando}
         \State
         \For{$i \leftarrow 0$ \To $max\_jugadores$ - 1}
+            \State
+            \State Tomamos read lock para proteger de una posible escritura en cada jugador desde \textsc{Modelo::ack}.
+            \State
         	\State \Fn{rlock}{locks\_jugadores[i]}
             \If{\PNot $jugadores[i].$\Fn{termino}{}}
             	\State \Fn{runlock}{locks\_jugadores[i]}
