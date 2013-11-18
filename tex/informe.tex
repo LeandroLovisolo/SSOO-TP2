@@ -489,11 +489,16 @@ Si no se abriera este método en los dos casos mencionados, tendríamos un únic
 
 \begin{pseudo}
     \Procedure{apuntar}{$s\_id, t\_id, x, y, *eta$}
+        \State
+        \State Tomamos read lock sobre $jugando$ para evitar que termine el juego mientars estamos apuntando.
+        \State
         \State \Fn{rlock}{lock\_jugando}
         \If{$jugando \neq$ \texttt{DISPAROS}}
             \State \Fn{runlock}{lock\_jugando}
             \State \PReturn{-\texttt{ERROR\_JUEGO\_NO\_COMENZADO}}
         \EndIf
+        \State
+        \State Tomamos lock de escritura sobre ambos jugadores para realizar el tiro. Esto evita que se escriba el mismo jugador por más de un thread en el caso de tener dos jugadores apuntando al mismo jugador a la vez.
         \State
         \State \Fn{wlock}{locks\_jugadores[s\_id]}
         \State \Fn{wlock}{locks\_jugadores[t\_id]}
