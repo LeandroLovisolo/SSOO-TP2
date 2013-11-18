@@ -347,24 +347,24 @@ Pendiente
 \subsection{Modelo::empezar}
 \begin{pseudo}
 \Procedure{Modelo::empezar}{}
-	\If{jugando $\neq$ SETUP}
+	\If{$jugando \neq$ \texttt{SETUP}}
 		\State \PReturn{-\texttt{ERROR\_JUEGO\_EN\_PROGRESO}}
 	\EndIf
-	\For{i = 0 To max\_jugadores - 1}
-		\If{jugadores[i] $\neq$ NULL}
+	\For{$i \leftarrow 0$ To $max\_jugadores$ - 1}
+		\If{jugadores[i] $\neq$ \Null}
 			\State $evento  \leftarrow$ \Fn{evento}{0, i, 0, 0, \texttt{EVENTO\_START}}
 			\State \Fn{wlock}{locks_eventos[i]}
 			\State eventos[i].push(evento)
 			\Fn{wunlock}{locks_eventos[i]}
 		\EndIf
 	\EndFor
-	\State jugando $\leftarrow$ DISPAROS
+	\State $jugando \leftarrow$ \texttt{DISPAROS}
 	\PReturn{\texttt{ERROR\_NO\_ERROR}}
 \EndProcedure
 
 \Procedure{Modelo::\_empezar}{}
 	\State \Fn{wlock}{lock\_jugando}
-	\State out $\leftarrow$ \Fn{\_empezar}{}
+	\State $out \leftarrow$ \Fn{\_empezar}{}
 	\State \Fn{wunlock}{lock\_jugando}
 	\PReturn{out}
 \EndProcedure
