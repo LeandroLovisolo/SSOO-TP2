@@ -545,6 +545,9 @@ Si no se abriera este método en los dos casos mencionados, tendríamos un únic
 
 \begin{pseudo}
     \Procedure{tocar}{$s\_id, t\_id$}
+        \State
+        \State Tomamos read lock sobre $jugando$ para evitar que termine el juego mientars registramos el toque.
+        \State
         \State \Fn{wlock}{lock\_jugando}
         \If{$jugando \neq $ \texttt{DISPAROS}}
             \State \Fn{wunlock}{lock\_jugando}
@@ -561,6 +564,9 @@ Si no se abriera este método en los dos casos mencionados, tendríamos un únic
         \State \Fn{wlock}{locks\_tiros[s\_id]}
         \State
         \If{$tiros[s\_id].$\Fn{es\_posible\_tocar}{}}
+            \State
+            \State Tomamos locks de escritura sobre ambos jugadores para poder tener acceso de forma exclusiva mientras actualizamos los puntajes.
+            \State
             \State \Fn{wlock}{locks\_jugadores[t\_id]}
             \State \Fn{wlock}{locks\_jugadores[s\_id]}
             \State
