@@ -266,6 +266,9 @@ Pendiente
 
 \begin{pseudo}
     \Procedure{Modelo::agregarJugador}{$nombre$}
+        \State
+        \State Protegemos $jugando$ con un read lock para evitar que comience el juego mientras estamos agregando al nuevo jugador.
+        \State
         \State \Fn{rlock}{lock\_jugando}
         \If{$jugando \neq$ \texttt{SETUP}}
             \State \Fn{runlock}{lock\_jugando}
@@ -275,6 +278,9 @@ Pendiente
         \State $nuevoid \leftarrow$ 0
         \State $agregado \leftarrow$ \PFalse
         \For{$nuevoid \leftarrow$ 0 \To $max\_jugadores$ - 1}
+            \State
+            \State Protegemos el jugador $nuevoid$ con un write lock para evitar que al agregarse otro jugador en simultáneo, éste no utilice el mismo id.
+            \State
             \State \Fn{wlock}{locks\_jugadores[nuevoid]}
             \If{$jugadores[nuevoid] =$ \Null}
                 \State $jugadores[nuevoid] \leftarrow$ \Fn{jugador}{nombre}
@@ -639,28 +645,35 @@ Pendiente
 
 
 \subsection{Jsonificador::start}
+
 Utilizamos un read lock para que otras operaciones sobre los jugadores no modifiquen al jugador del que estoy
 leyendo su información.
+
 \begin{pseudo}
-    \For{$i \leftarrow 0$ To $max\_jugadores$}
-       \State \Fn{rlock}{modelo->locks\_jugadores[i]}
-       \State Utilización de datos del jugador
-       \State \Fn{runlock}{modelo->locks\_jugadores[i]}
+    \For{$i \leftarrow 0$ \To $max\_jugadores$}
+       \State \Fn{rlock}{modelo.locks\_jugadores[i]}
+       \State Lectura de datos del jugador
+       \State \Fn{runlock}{modelo.locks\_jugadores[i]}
+
     \EndFor
 \end{pseudo}
 
 \subsection{Jsonificador::player\_info}
+
 Utilizamos un read lock para que ninguna otra operación escriba mientras leemos los datos del jugador.
+
 \begin{pseudo}
-    \State \Fn{rlock}{modelo->locks\_jugadores[id]}
-    \State Utilización de datos del jugador
-    \State \Fn{runlock}{modelo->locks\_jugadores[id]}
+    \State \Fn{rlock}{modelo.locks\_jugadores[id]}
+    \State Lectura de datos del jugador
+    \State \Fn{runlock}{modelo.locks\_jugadores[id]}
 \end{pseudo}
 
 
 \subsection{Jsonificador::scores}
+
 Protegemos con un read lock al jugador a leer para que ninguna otra operación escriba
-sobre este mientras obtenemos información de este.
+sobre éste mientras obtenemos información de este.
+
 \begin{pseudo}
     \For{$i \leftarrow 0$ To $max\_jugadores$}
        \State \Fn{rlock}{modelo->locks\_jugadores[i]}
