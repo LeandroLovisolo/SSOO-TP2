@@ -440,16 +440,17 @@ Pendiente
     		\State \Fn{runlock}{lock\_jugando}
     		\State \PReturn{-\texttt{ERROR\_JUEGO\_EN\_PROGRESO}}
     	\EndIf
+        \State
     	\State \Fn{wlock}{locks\_jugadores[s\_id]}
-    	\If{$jugadores[s\_id]$ = \texttt{NULL}}
+    	\If{$jugadores[s\_id]$ = \Null}
     		\State \Fn{wunlock}{locks\_jugadores[s\_id]}
     		\State \Fn{runlock}{lock\_jugando}
     		\State \PReturn{-\texttt{ERROR\_JUGADOR\_INEXISTENTE}}
     	\EndIf
-
+        \State
     	\State \Fn{delete}{jugadores[s\_id]}
-    	$jugadores[s_id] \leftarrow$ \texttt{NULL}
-
+        \State $jugadores[s\_id] \leftarrow$ \Null
+        \State
     	\State \Fn{wunlock}{locks\_jugadores[s\_id]}
     	\State \Fn{runlock}{lock\_jugando}
     	\State \PReturn{\texttt{ERROR\_NO\_ERROR}}
