@@ -345,50 +345,113 @@ Pendiente
 
 
 \subsection{Modelo::empezar}
-\begin{pseudo}
-\Procedure{Modelo::empezar}{}
-	\If{jugando $\neq$ SETUP}
-		\State \PReturn{-\texttt{ERROR\_JUEGO\_EN\_PROGRESO}}
-	\EndIf
-	\For{i = 0 To max\_jugadores - 1}
-		\If{jugadores[i] $\neq$ \Null}
-			\State $evento  \leftarrow$ \Fn{evento}{0, i, 0, 0, \texttt{EVENTO\_START}}
-			\State \Fn{wlock}{locks_eventos[i]}
-			\State eventos[i].push(evento)
-			\Fn{wunlock}{locks_eventos[i]}
-		\EndIf
-	\EndFor
-	\State jugando $\leftarrow$ DISPAROS
-	\PReturn{\texttt{ERROR\_NO\_ERROR}}
-\EndProcedure
 
-\Procedure{Modelo::\_empezar}{}
-	\State \Fn{wlock}{lock\_jugando}
-	\State out $\leftarrow$ \Fn{\_empezar}{}
-	\State \Fn{wunlock}{lock\_jugando}
-	\PReturn{out}
-\EndProcedure
+\begin{pseudo}
+    \Procedure{Modelo::empezar}{}
+    	\If{$jugando \neq$ \texttt{SETUP}}
+    		\State \PReturn{-\texttt{ERROR\_JUEGO\_EN\_PROGRESO}}
+    	\EndIf
+    	\For{$i \leftarrow 0$ To $max\_jugadores$ - 1}
+    		\If{$jugadores[i] \neq$ \Null}
+    			\State $evento  \leftarrow$ \Fn{evento}{0, i, 0, 0, \texttt{EVENTO\_START}}
+    			\State \Fn{wlock}{locks_eventos[i]}
+    			\State eventos[i].push(evento)
+    			\Fn{wunlock}{locks_eventos[i]}
+    		\EndIf
+    	\EndFor
+    	\State $jugando \leftarrow$ \texttt{DISPAROS}
+    	\PReturn{\texttt{ERROR\_NO\_ERROR}}
+    \EndProcedure
+
+    \Procedure{Modelo::\_empezar}{}
+    	\State \Fn{wlock}{lock\_jugando}
+    	\State $out \leftarrow$ \Fn{\_empezar}{}
+    	\State \Fn{wunlock}{lock\_jugando}
+    	\PReturn{out}
+    \EndProcedure
 \end{pseudo}
 
 
 \subsection{Modelo::finalizar}
 
-Pendiente
+\begin{pseudo}
+    \Procedure{modelo::finalizar}{}
+    	\If{$jugando \neq$ \texttt{DISPAROS}} \PReturn{-\texttt{ERROR\_JUEGO\_NO\_COMENZADO}} \EndIf
+    	\For{$i \leftarrow 0$ To $max\_jugadores$ - 1}
+    		\If{$jugadores[i] \neq$ \texttt{NULL}}
+    			\State $evento  \leftarrow$ \Fn{evento}{0, i, 0, 0, \texttt{EVENTO\_START}}
+    			\State \Fn{wlock}{locks\_eventos[i]}
+    			\State eventos[i].\Fn{push}{evento}
+    			\State \Fn{wunlock}{locks\_eventos[i]}
+    		\EndIf
+    	\EndFor
+    	\State $jugando \leftarrow$ \texttt{FINALIZADO}
+    	\State \PReturn{\texttt{ERROR\_NO\_ERROR}}
+    \EndProcedure
+\end{pseudo}
 
 
 \subsection{Modelo::ack}
 
-Pendiente
+\begin{pseudo}
+    \Procedure{modelo::ack}{}
+    	\State \Fn{wlock}{locks\_jugadores[s_id]}
+    	\State $retorno \leftarrow$ jugadores[s\_id].\Fn{ack}{}
+    	\State \Fn{wunlock}{locks\_jugadores[s\_id]}
+
+    	\State \PReturn{retorno}
+    \EndProcedure
+\end{pseudo}
 
 
 \subsection{Modelo::termino}
 
-Pendiente
+\begin{pseudo}
+    \Procedure{termino}{}
+    	\State \Fn{rlock}{lock\_jugando}
+    	\If{$jugando$ = SETUP}
+    		\State \Fn{runlock}{lock\_jugando}
+    		\State false
+    	\EndIf
+    	\State \Fn{runlock}{lock\_jugando}
+
+        \For{$i \leftarrow 0$ To $max\_jugadores$ - 1}
+        	\State \Fn{rlock}{locks_jugadores[i]}
+            \If{!jugadores[i].Fn{termino{}}}
+            	\State \Fn{runlock}{locks\_jugadores[i]}
+                \State \PReturn{false}
+            \EndIf
+            \State \Fn{runlock}{locks_jugadores[i]}
+        \EndFor
+        \State \PReturn{true}
+    \EndProcedure
+\end{pseudo}
 
 
 \subsection{Modelo::quitarJugador}
 
-Pendiente
+\begin{pseudo}
+    \Procedure{Modelo::quitarJugador}{s\_id}
+    	\State \Fn{rlock}{lock\_jugando}
+    	\If{$jugando \neq$ \texttt{SETUP}}
+    		\State \Fn{runlock}{lock\_jugando}
+    		\State \PReturn{-\texttt{ERROR\_JUEGO\_EN\_PROGRESO}}
+    	\EndIf
+    	\State \Fn{wlock}{locks\_jugadores[s\_id]}
+    	\If{$jugadores[s\_id]$ = \texttt{NULL}}
+    		\State \Fn{wunlock}{locks\_jugadores[s\_id]}
+    		\State \Fn{runlock}{lock\_jugando}
+    		\State \PReturn{-\texttt{ERROR\_JUGADOR\_INEXISTENTE}}
+    	\EndIf
+
+    	\State \Fn{delete}{jugadores[s\_id]}
+    	$jugadores[s_id] \leftarrow$ \texttt{NULL}
+
+    	\State \Fn{wunlock}{locks\_jugadores[s\_id]}
+    	\State \Fn{runlock}{lock\_jugando}
+    	\State \PReturn{\texttt{ERROR\_NO\_ERROR}}
+    \EndProcedure
+\end{pseudo}
 
 
 \subsection{Modelo::apuntar}
