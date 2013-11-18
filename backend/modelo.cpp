@@ -24,8 +24,6 @@ Modelo::Modelo(int njugadores, int tamtablero, int tamtotalbarcos){
 
 	this->locks_eventos = new RWLock[max_jugadores];
 	this->locks_jugadores = new RWLock[max_jugadores];
-	this->locks_tiros = new RWLock[max_jugadores];
-
 }
 Modelo::~Modelo() {
 	for (int i = 0; i < max_jugadores; i++) {
@@ -39,7 +37,6 @@ Modelo::~Modelo() {
 
 	delete[] this->locks_eventos;
 	delete[] this->locks_jugadores;
-	delete[] this->locks_tiros;
 }
 
 /** Registra un nuevo jugador en la partida */
@@ -272,7 +269,6 @@ int Modelo::apuntar(int s_id, int t_id, int x, int y, int *eta) {
 
 	int retorno = RESULTADO_APUNTADO_DENEGADO;
 
-	locks_tiros[s_id].wlock();
 	if (this->tiros[s_id].es_posible_apuntar()) {
 		retorno = this->jugadores[t_id]->apuntar(s_id, x, y);
 		if (retorno == RESULTADO_APUNTADO_ACEPTADO) {
@@ -284,8 +280,6 @@ int Modelo::apuntar(int s_id, int t_id, int x, int y, int *eta) {
 			locks_eventos[t_id].wunlock();
 		}
 	}
-	locks_tiros[s_id].wunlock();
-
 	locks_jugadores[s_id].wunlock();
 	locks_jugadores[t_id].wunlock();
 	lock_jugando.runlock();
@@ -315,8 +309,6 @@ int Modelo::tocar(int s_id, int t_id) {
 	}
 	
 	int retorno = -ERROR_ETA_NO_TRANSCURRIDO;
-
-	locks_tiros[s_id].wlock();
 
 	if (this->tiros[s_id].es_posible_tocar()) {
 		locks_jugadores[t_id].wlock();
@@ -370,7 +362,6 @@ int Modelo::tocar(int s_id, int t_id) {
 		locks_jugadores[s_id].wunlock();
 	}
 
-	locks_tiros[s_id].wunlock();
 	lock_jugando.wunlock();
 
 	return retorno;
