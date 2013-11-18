@@ -44,16 +44,26 @@
     \vspace{0.5em}%
 }
 
-% Cláusula return para usar así: \PReturn foo
-\newcommand{\PReturn}[1]{\textbf{return} $#1$}
-
-% Conectivos lógicos
-\newcommand{\PAnd}{\textbf{and} }
-\newcommand{\POr}{\textbf{or} }
-
 % Llamada a función para usar así: \Fn{Foo}{bar, baz}.
 % Produce \textsc{Foo}$(bar, baz)$.
 \newcommand{\Fn}[2]{\textsc{#1}$(#2)$}
+
+% Cláusula return para usar así: \PReturn foo
+\newcommand{\PReturn}[1]{\textbf{return} $#1$}
+
+% Cláusula break
+\newcommand{\Break}{\textbf{break}}
+
+% Operadores lógicos
+\newcommand{\PAnd}{\textbf{and} }
+\newcommand{\POr}{\textbf{or} }
+\newcommand{\PNot}{\textbf{not} }
+
+% Booleanos
+\newcommand{\PTrue}{\textbf{true} }
+\newcommand{\PFalse}{\textbf{false} }
+
+
 
 % Conectivo 'in' para usar así: \ForAll{$foo$ \In $bar$}
 \newcommand{\In}{\textbf{in} }
@@ -254,37 +264,37 @@ Pendiente
 \subsection{Modelo::agregarJugador}
 
 \begin{pseudo}
-\Procedure{Modelo::agregarJugador}{nombre}
-	\State \Fn{rlock}{lock\_jugando}
-	\If{jugando != SETUP}
-		\State \Fn{runlock}{lock\_jugando}
-		\State return -\texttt{ERROR\_JUEGO\_EN\_PROGRESO}
-	\EndIf
-	
-	\State nuevoid : int $\leftarrow$ 0
-	\State agregado : bool $\leftarrow$ false
-	\For{nuevoid = 0 To max\_jugadores -1}
-		\State \Fn{wlock}{locks\_jugadores[nuevoid]}
-		\If{jugadores[nuevoid] == NULL}
-			\State jugadores[nuevoid] = new Jugador(nombre)
-			\State \Fn{wunlock}{locks\_jugadores[nuevoid]}
-			\State agregado $\leftarrow$ true
-			\State break
-		\EndIf
-		\State \Fn{wunlock}{locks\_jugadores[nuevoid]}
-	\EndFor
-	 \If{!agregado}
-		\State \Fn{runlock}{lock\_jugando}
-		\State \PReturn{return} -\texttt{ERROR\_MAX\_JUGADORES}
-	\EndIf
-
-	\State \Fn{wlock}{lock\_cantidad\_jugadores}
-	\State cantidad\_jugadores++;
-	\State \Fn{wunlock}{lock\_cantidad\_jugadores}
-	
-	\State \Fn{runlock}{lock\_jugando}
-	\State \PReturn{nuevoid}
-\EndProcedure
+    \Procedure{Modelo::agregarJugador}{nombre}
+        \State \Fn{rlock}{lock\_jugando}
+        \If{$jugando \neq$ \texttt{SETUP}}
+            \State \Fn{runlock}{lock\_jugando}
+            \State return -\texttt{ERROR\_JUEGO\_EN\_PROGRESO}
+        \EndIf
+        \State  
+        \State $nuevoid \leftarrow$ 0
+        \State $agregado \leftarrow$ \PFalse
+        \For{$nuevoid \leftarrow$ 0 \To $max\_jugadores$ - 1}
+            \State \Fn{wlock}{locks\_jugadores[nuevoid]}
+            \If{$jugadores[nuevoid] =$ \texttt{NULL}}
+                \State $jugadores[nuevoid] \leftarrow$ \Fn{jugador}{nombre}
+                \State \Fn{wunlock}{locks\_jugadores[nuevoid]}
+                \State agregado $\leftarrow$ \PTrue
+                \State \Break
+            \EndIf
+            \State \Fn{wunlock}{locks\_jugadores[nuevoid]}
+        \EndFor
+         \If{\PNot $agregado$}
+            \State \Fn{runlock}{lock\_jugando}
+            \State \PReturn{- \texttt{ERROR\_MAX\_JUGADORES}}
+        \EndIf
+        \State
+        \State \Fn{wlock}{lock\_cantidad\_jugadores}
+        \State $cantidad\_jugadores \leftarrow cantidad\_jugadores + 1$
+        \State \Fn{wunlock}{lock\_cantidad\_jugadores}
+        \State
+        \State \Fn{runlock}{lock\_jugando}
+        \State \PReturn{nuevoid}
+    \EndProcedure
 \end{pseudo}
 
 
@@ -405,7 +415,95 @@ Pendiente
 
 \subsection{Modelo::tocar}
 
-Pendiente
+\begin{pseudo}
+    \Procedure{tocar}{s\_id, t\_id}
+        \State \Fn{wlock}{lock\_jugando}
+        \If{$jugando \neq $ \texttt{DISPAROS}}
+            \State \Fn{wunlock}{lock\_jugando}
+            \State \PReturn{- \texttt{ERROR\_JUEGO\_NO\_COMENZADO}}
+        \EndIf
+        \State
+        \State
+    \EndProcedure
+\end{pseudo}
+
+
+
+% /** Concretar el tiro efectivamente, solo tiene exito si ya trascurrió el eta.
+%     y e impacta con algo.*/
+% int Modelo::tocar(int s_id, int t_id) {
+%     lock_jugando.wlock();
+%     if (this->jugando != DISPAROS) {
+%         lock_jugando.wunlock();
+%         return -ERROR_JUEGO_NO_COMENZADO;
+%     }
+
+%     if (this->jugadores[s_id] == NULL || this->jugadores[t_id] == NULL) {
+%         lock_jugando.wunlock();
+%         return -ERROR_JUGADOR_INEXISTENTE;  
+%     }
+    
+%     int retorno = -ERROR_ETA_NO_TRANSCURRIDO;
+
+%     locks_tiros[s_id].wlock();
+
+%     if (this->tiros[s_id].es_posible_tocar()) {
+%         locks_jugadores[t_id].wlock();
+%         locks_jugadores[s_id].wlock();
+
+%         int x = this->tiros[s_id].x;
+%         int y = this->tiros[s_id].y;
+%         bool murio = false;
+%         retorno = this->jugadores[t_id]->tocar(s_id, x, y, &murio);
+%         if (retorno == EMBARCACION_RESULTADO_TOCADO ||
+%             retorno == EMBARCACION_RESULTADO_HUNDIDO ||
+%             retorno == EMBARCACION_RESULTADO_HUNDIDO_M ||
+%             retorno == EMBARCACION_RESULTADO_AGUA ||
+%             retorno == EMBARCACION_RESULTADO_AGUA_H
+%             ) {
+            
+%             this->tiros[s_id].estado = TIRO_LIBRE;
+%             Evento evento(s_id, t_id, x, y, retorno);
+
+%             //Evento para el tirado
+%             locks_eventos[t_id].wlock();
+%             this->eventos[t_id].push(evento);
+%             locks_eventos[t_id].wunlock();
+
+%             //Evento para el tirador
+%             locks_eventos[s_id].wlock();
+%             this->eventos[s_id].push(evento);
+%             locks_eventos[s_id].wunlock();
+
+%             if(murio) {
+%                 lock_cantidad_jugadores.wlock();
+%                 this->cantidad_jugadores--;
+%                 if(this->cantidad_jugadores == 1){
+%                     printf("Dale viejo!\n");
+%                     this->finalizar(); 
+%                 }
+%                 lock_cantidad_jugadores.wunlock();
+%             }
+%         }
+%         if (retorno == EMBARCACION_RESULTADO_HUNDIDO) {
+%             this->jugadores[s_id]->agregar_puntaje(PUNTAJE_HUNDIDO);
+%         } else if (retorno == EMBARCACION_RESULTADO_HUNDIDO_M) {
+%             this->jugadores[s_id]->agregar_puntaje(PUNTAJE_HUNDIDO+PUNTAJE_MISMO_JUGADOR);
+%         } else if (retorno == EMBARCACION_RESULTADO_TOCADO) {
+%             this->jugadores[s_id]->agregar_puntaje(PUNTAJE_TOCADO);
+%         } else if (retorno == EMBARCACION_RESULTADO_AGUA_H) {
+%             this->jugadores[s_id]->agregar_puntaje(PUNTAJE_MAGALLANES);
+%         }
+
+%         locks_jugadores[t_id].wunlock();
+%         locks_jugadores[s_id].wunlock();
+%     }
+
+%     locks_tiros[s_id].wunlock();
+%     lock_jugando.wunlock();
+
+%     return retorno;
+% }
 
 
 \subsection{Modelo::hayEventos}
