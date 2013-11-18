@@ -663,6 +663,17 @@ mientras se remueve un elemento de la cola.
 \end{pseudo}
 
 
+\subsection{Modelo::printPuntajes}
+Esta función no aporta funcionalidad a la sincronización, pero fue agregada a la clase para poder imprimir los puntajes de los jugadores al finalizar la partida.
+\begin{pseudo}
+    \Procedure{printPuntaje}{}
+        \For{$i \leftarrow$ 0 \To $jugadores\_listos$ - 1}
+            \State \Fn{printf}{$"Nombre: \%s - Puntaje: \%d"$, jugadores[i]\to \Fn{dame\_nombre}{}.\Fn{c\_str}{}, jugadores[i]\to \Fn{dame\_puntaje}{}}
+        \EndFor
+    \EndProcedure
+\end{pseudo}
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Jsonificador                                                              %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
