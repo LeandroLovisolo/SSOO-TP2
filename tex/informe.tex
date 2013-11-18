@@ -44,16 +44,26 @@
     \vspace{0.5em}%
 }
 
-% Cláusula return para usar así: \PReturn foo
-\newcommand{\PReturn}[1]{\textbf{return} $#1$}
-
-% Conectivos lógicos
-\newcommand{\PAnd}{\textbf{and} }
-\newcommand{\POr}{\textbf{or} }
-
 % Llamada a función para usar así: \Fn{Foo}{bar, baz}.
 % Produce \textsc{Foo}$(bar, baz)$.
 \newcommand{\Fn}[2]{\textsc{#1}$(#2)$}
+
+% Cláusula return para usar así: \PReturn foo
+\newcommand{\PReturn}[1]{\textbf{return} $#1$}
+
+% Cláusula break
+\newcommand{\Break}{\textbf{break}}
+
+% Operadores lógicos
+\newcommand{\PAnd}{\textbf{and} }
+\newcommand{\POr}{\textbf{or} }
+\newcommand{\PNot}{\textbf{not} }
+
+% Booleanos
+\newcommand{\PTrue}{\textbf{true} }
+\newcommand{\PFalse}{\textbf{false} }
+
+
 
 % Conectivo 'in' para usar así: \ForAll{$foo$ \In $bar$}
 \newcommand{\In}{\textbf{in} }
@@ -254,37 +264,37 @@ Pendiente
 \subsection{Modelo::agregarJugador}
 
 \begin{pseudo}
-\Procedure{Modelo::agregarJugador}{nombre}
-	\State \Fn{rlock}{lock\_jugando}
-	\If{jugando != SETUP}
-		\State \Fn{runlock}{lock\_jugando}
-		\State return -\texttt{ERROR\_JUEGO\_EN\_PROGRESO}
-	\EndIf
-	
-	\State nuevoid : int $\leftarrow$ 0
-	\State agregado : bool $\leftarrow$ false
-	\For{nuevoid = 0 To max\_jugadores -1}
-		\State \Fn{wlock}{locks\_jugadores[nuevoid]}
-		\If{jugadores[nuevoid] == NULL}
-			\State jugadores[nuevoid] = new Jugador(nombre)
-			\State \Fn{wunlock}{locks\_jugadores[nuevoid]}
-			\State agregado $\leftarrow$ true
-			\State break
-		\EndIf
-		\State \Fn{wunlock}{locks\_jugadores[nuevoid]}
-	\EndFor
-	 \If{!agregado}
-		\State \Fn{runlock}{lock\_jugando}
-		\State \PReturn{return} -\texttt{ERROR\_MAX\_JUGADORES}
-	\EndIf
-
-	\State \Fn{wlock}{lock\_cantidad\_jugadores}
-	\State cantidad\_jugadores++;
-	\State \Fn{wunlock}{lock\_cantidad\_jugadores}
-	
-	\State \Fn{runlock}{lock\_jugando}
-	\State \PReturn{nuevoid}
-\EndProcedure
+    \Procedure{Modelo::agregarJugador}{nombre}
+        \State \Fn{rlock}{lock\_jugando}
+        \If{$jugando \neq$ \texttt{SETUP}}
+            \State \Fn{runlock}{lock\_jugando}
+            \State return -\texttt{ERROR\_JUEGO\_EN\_PROGRESO}
+        \EndIf
+        \State  
+        \State $nuevoid \leftarrow$ 0
+        \State $agregado \leftarrow$ \PFalse
+        \For{$nuevoid \leftarrow$ 0 \To $max\_jugadores$ - 1}
+            \State \Fn{wlock}{locks\_jugadores[nuevoid]}
+            \If{$jugadores[nuevoid] =$ \texttt{NULL}}
+                \State $jugadores[nuevoid] \leftarrow$ \Fn{jugador}{nombre}
+                \State \Fn{wunlock}{locks\_jugadores[nuevoid]}
+                \State agregado $\leftarrow$ \PTrue
+                \State \Break
+            \EndIf
+            \State \Fn{wunlock}{locks\_jugadores[nuevoid]}
+        \EndFor
+         \If{\PNot $agregado$}
+            \State \Fn{runlock}{lock\_jugando}
+            \State \PReturn{- \texttt{ERROR\_MAX\_JUGADORES}}
+        \EndIf
+        \State
+        \State \Fn{wlock}{lock\_cantidad\_jugadores}
+        \State $cantidad\_jugadores \leftarrow cantidad\_jugadores + 1$
+        \State \Fn{wunlock}{lock\_cantidad\_jugadores}
+        \State
+        \State \Fn{runlock}{lock\_jugando}
+        \State \PReturn{nuevoid}
+    \EndProcedure
 \end{pseudo}
 
 
