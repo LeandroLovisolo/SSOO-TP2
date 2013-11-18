@@ -357,30 +357,34 @@ Pendiente
 
 \subsection{Modelo::empezar}
 
+Separamos este método en dos partes: \textsc{Modelo::empezar}, que una que toma write lock sobre $jugando$ y llama a \textsc{Modelo::\_empezar}, que asume que ya se tiene el write lock sobre $jugando$ y realiza la operación de empezar. El método \textsc{Modelo::empezar} se llama desde la clase \textsc{Decodificador}, que no tiene acceso a dicho lock directamente, mientras que \textsc{Modelo::\_empezar} se llama desde \textsc{Modelo::ubicar}, que ya toma lock de escritura sobre $jugando$ para proteger operaciones anteriores a \textsc{Modelo::\_empezar}.
+
+Si no se abriera este método en los dos casos mencionados, tendríamos un único método que toma write lock sobre $jugando$, pues como \textsc{Decodificador} no tiene acceso a ese lock, no queda otra opción. Entonces \textsc{Modelo::ubicar} produciría dos llamadas consecutivas \Fn{wlock}{lock\_jugando}, generando así un deadlock. Separando este método en dos casos distintos evitamos el deadlock.
+
 \begin{pseudo}
     \Procedure{Modelo::empezar}{}
+        \State \Fn{wlock}{lock\_jugando}
+        \State $out \leftarrow$ \Fn{\_empezar}{}
+        \State \Fn{wunlock}{lock\_jugando}
+        \State \PReturn{out}
+    \EndProcedure
+\end{pseudo}
+
+\begin{pseudo}
+    \Procedure{Modelo::\_empezar}{}
     	\If{$jugando \neq$ \texttt{SETUP}}
     		\State \PReturn{-\texttt{ERROR\_JUEGO\_EN\_PROGRESO}}
     	\EndIf
     	\For{$i \leftarrow 0$ \To $max\_jugadores - 1$}
     		\If{$jugadores[i] \neq$ \Null}
     			\State $evento \leftarrow$ \Fn{evento}{0, i, 0, 0, \texttt{EVENTO\_START}}
-    			\State \Fn{wlock}{locks_eventos[i]}
+    			\State \Fn{wlock}{locks\_eventos[i]}
     			\State $eventos[i].$\Fn{push}{evento}
     			\State \Fn{wunlock}{locks\_eventos[i]}
     		\EndIf
     	\EndFor
     	\State $jugando \leftarrow$ \texttt{DISPAROS}
     	\State \PReturn{\texttt{ERROR\_NO\_ERROR}}
-    \EndProcedure
-\end{pseudo}
-
-\begin{pseudo}
-    \Procedure{Modelo::\_empezar}{}
-    	\State \Fn{wlock}{lock\_jugando}
-    	\State $out \leftarrow$ \Fn{\_empezar}{}
-    	\State \Fn{wunlock}{lock\_jugando}
-    	\State \PReturn{out}
     \EndProcedure
 \end{pseudo}
 
