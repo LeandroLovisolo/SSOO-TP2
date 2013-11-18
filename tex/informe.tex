@@ -362,15 +362,32 @@ Pendiente
 
 
 \subsection{Modelo::finalizar}
-
-Pendiente
-
+\begin{pseudo}
+\Procedure{modelo::finalizar}{}
+	\If{jugando $\neq$ \texttt{DISPAROS}} \PReturn{-\texttt{ERROR\_JUEGO\_NO\_COMENZADO}} \EndIf
+	\For{i = 0 To max\_jugadores - 1}
+		\If{jugadores[i] $\neq$ NULL}
+			\State $evento  \leftarrow$ \Fn{evento}{0, i, 0, 0, \texttt{EVENTO\_START}}
+			\State \Fn{wlock}{locks\_eventos[i]}
+			\State eventos[i].\Fn{push}{evento}
+			\State \Fn{wunlock}{locks\_eventos[i]}
+		\EndIf
+	\EndFor
+	\State jugando $\leftarrow$ \texttt{FINALIZADO}
+	\State \PReturn{\texttt{ERROR\_NO\_ERROR}}
+\EndProcedure
+\end{pseudo}
 
 \subsection{Modelo::ack}
+\begin{pseudo}
+\Procedure{modelo::ack}{}
+	\State \Fn{wlock}{locks\_jugadores[s_id]}
+	\State retorno $\leftarrow$ jugadores[s\_id].\Fn{ack}{}
+	\State \Fn{wunlock}{locks\_jugadores[s\_id]}
 
-Pendiente
-
-
+	\State \PReturn{retorno}
+\EndProcedure
+\end{pseudo}
 \subsection{Modelo::termino}
 
 Pendiente
