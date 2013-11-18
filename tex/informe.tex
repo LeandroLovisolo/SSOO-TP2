@@ -563,18 +563,33 @@ Pendiente
 
 
 \subsection{Jsonificador::start}
-
-Pendiente
-
+Utilizamos un read lock para que otras operaciones sobre los jugadores no modifiquen al jugador del que estoy
+leyendo su información.
+\begin{pseudo}
+    \For{$i \leftarrow 0$ To $max\_jugadores$}
+       \State \Fn{rlock}{modelo->locks\_jugadores[i]}
+       \State Utilización de datos del jugador
+       \State \Fn{runlock}{modelo->locks\_jugadores[i]}
+    \EndFor
+\end{pseudo}
 
 \subsection{Jsonificador::player\_info}
-
-Pendiente
+Utilizamos un read lock para que ninguna otra operación escriba mientras leemos los datos del jugador.
+\begin{pseudo}
+    \State \Fn{rlock}{modelo->locks\_jugadores[id]}
+    \State Utilización de datos del jugador
+    \State \Fn{runlock}{modelo->locks\_jugadores[id]}
+\end{pseudo}
 
 
 \subsection{Jsonificador::scores}
-
-Pendiente
-
-
+Protegemos con un read lock al jugador a leer para que ninguna otra operación escriba
+sobre este mientras obtenemos información de este.
+\begin{pseudo}
+    \For{$i \leftarrow 0$ To $max\_jugadores$}
+       \State \Fn{rlock}{modelo->locks\_jugadores[i]}
+       \State Utilización de datos del jugador
+       \State \Fn{runlock}{modelo->locks\_jugadores[i]}
+    \EndFor
+\end{pseudo}
 \end{document}
