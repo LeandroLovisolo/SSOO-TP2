@@ -251,15 +251,16 @@ Pendiente
 
 \section{Modelo}
 
+A continuación listamos el conjunto de campos de la clase \textsc{Modelo} que protegemos mediante read-write locks, junto con sus respectivos locks.
 
-\subsection{Modelo::Modelo}
-
-Pendiente
-
-
-\subsection{Modelo::\char`\~Modelo}
-
-Pendiente
+\begin{itemize}
+    \item{$cantidad\_jugadores$: $lock\_cantidad\_jugadores$.}
+    \item{$jugadores\_listos$: $lock\_jugadores\_listos$.}
+    \item{$jugadores[]$: $locks\_jugadores[]$.}
+    \item{$tiros[]$: $locks\_tiros[]$.}
+    \item{$eventos[]$: $locks\_eventos[]$.}
+    \item{$jugando$: $lock\_jugando$.}    
+\end{itemize}
 
 
 \subsection{Modelo::agregarJugador}
