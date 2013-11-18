@@ -639,7 +639,7 @@ mientras se remueve un evento de la cola.
         \State $retorno \leftarrow eventos[s\_id]$.\Fn{front}{}
         \State $eventos[s_id]$.\Fn{pop}{}
         \State \Fn{wunlock}{locks\_eventos[s\_id]}
-        \State \PReturn{eretorno}
+        \State \PReturn{retorno}
     \EndProcedure
 \end{pseudo}
 
@@ -704,10 +704,10 @@ Protegemos con un read lock al jugador a leer para que ninguna otra operación e
 sobre éste mientras obtenemos información de este.
 
 \begin{pseudo}
-    \For{$i \leftarrow 0$ To $max\_jugadores$}
-       \State \Fn{rlock}{modelo->locks\_jugadores[i]}
+    \For{$i \leftarrow 0$ \To $max\_jugadores$}
+       \State \Fn{rlock}{modelo.locks\_jugadores[i]}
        \State Utilización de datos del jugador
-       \State \Fn{runlock}{modelo->locks\_jugadores[i]}
+       \State \Fn{runlock}{modelo.locks\_jugadores[i]}
     \EndFor
 \end{pseudo}
 \end{document}
