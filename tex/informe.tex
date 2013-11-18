@@ -309,11 +309,16 @@ Pendiente
 
 \begin{pseudo}
     \Procedure{Modelo::ubicar}{$t\_id, xs, ys, tamanio$}
+        \State
+        \State Protegemos $jugando$ con un read lock para evitar que comience el juego mientras estamos ubicando un barco.
+        \State
         \State \Fn{wlock}{lock\_jugando}
         \If{jugando $\neq$ \texttt{SETUP}}
             \State \Fn{wunlock}{lock\_jugando}
             \State \PReturn{- \texttt{ERROR\_JUEGO\_EN\_PROGRESO}}
         \EndIf
+        \State
+        \State Protegemos el jugador contra lecturas y escrituras simultáneas.
         \State
         \State \Fn{wlock}{locks\_jugadores[t\_id]}
         \If{jugadores[t\_id] = \Null}
