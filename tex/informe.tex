@@ -253,7 +253,39 @@ Pendiente
 
 \subsection{Modelo::agregarJugador}
 
-Pendiente
+\begin{pseudo}
+\Procedure{Modelo::agregarJugador}{nombre}
+	\State \Fn{rlock}{lock\_jugando}
+	\If{jugando != SETUP}
+		\State \Fn{runlock}{lock\_jugando}
+		\State return -\texttt{ERROR\_JUEGO\_EN\_PROGRESO}
+	\EndIf
+	
+	\State nuevoid : int $\leftarrow$ 0
+	\State agregado : bool $\leftarrow$ false
+	\For{nuevoid = 0 To max\_jugadores -1}
+		\State \Fn{wlock}{locks\_jugadores[nuevoid]}
+		\If{jugadores[nuevoid] == NULL}
+			\State jugadores[nuevoid] = new Jugador(nombre)
+			\State \Fn{wunlock}{locks\_jugadores[nuevoid]}
+			\State agregado $\leftarrow$ true
+			\State break
+		\EndIf
+		\State \Fn{wunlock}{locks\_jugadores[nuevoid]}
+	\EndFor
+	 \If{!agregado}
+		\State \Fn{runlock}{lock\_jugando}
+		\State \PReturn{return} -\texttt{ERROR\_MAX\_JUGADORES}
+	\EndIf
+
+	\State \Fn{wlock}{lock\_cantidad\_jugadores}
+	\State cantidad\_jugadores++;
+	\State \Fn{wunlock}{lock\_cantidad\_jugadores}
+	
+	\State \Fn{runlock}{lock\_jugando}
+	\State \PReturn{nuevoid}
+\EndProcedure
+\end{pseudo}
 
 
 \subsection{Modelo::ubicar}
