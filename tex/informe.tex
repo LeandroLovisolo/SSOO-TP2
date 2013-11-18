@@ -336,10 +336,7 @@ Pendiente
 
 \subsection{Modelo::empezar}
 \begin{pseudo}
-\Procedure{empezar}{}
-\EndProcedure
-
-\Procedure{\_empezar}{}
+\Procedure{Modelo::empezar}{}
 	\If{jugando $\neq$ SETUP}
 		\State \PReturn{-\texttt{ERROR\_JUEGO\_EN\_PROGRESO}}
 	\EndIf
@@ -355,9 +352,9 @@ Pendiente
 	\PReturn{\texttt{ERROR\_NO\_ERROR}}
 \EndProcedure
 
-\Procedure{\_empezar}{}
+\Procedure{Modelo::\_empezar}{}
 	\State \Fn{wlock}{lock\_jugando}
-	\State out $\leftarrow$ \_empezar()
+	\State out $\leftarrow$ \Fn{\_empezar}{}
 	\State \Fn{wunlock}{lock\_jugando}
 	\PReturn{out}
 \EndProcedure
