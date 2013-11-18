@@ -2,12 +2,10 @@
 /backend/server
 /backend/tests
 
-# Código objeto
+# Código objeto y librerías
 *.o
-
-# Código objeto y binarios de websockify
-rebind.o
-rebind.so
+*.so
+*.a
 
 # LaTeX
 informe.pdf

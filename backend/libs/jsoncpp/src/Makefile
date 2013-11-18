@@ -17,4 +17,4 @@ $(LIB):
 
 clean:
 	rm -f $(OBJECTS)
-	rm -f $(BINARIES)
+	rm -f $(LIB)

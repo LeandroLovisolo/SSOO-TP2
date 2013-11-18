@@ -35,6 +35,7 @@ gtest-all.o:
 	$(CXX) $(CXXFLAGS) -I$(GTEST_DIR) -I$(GTEST_DIR)/include -c $(GTEST_DIR)/src/gtest-all.cc
 
 clean:
+	$(MAKE) -C libs/jsoncpp/src clean
 	rm -f $(OBJECTS)
 	rm -f $(BINARY)
 	rm -f $(TESTS_OBJECTS)
