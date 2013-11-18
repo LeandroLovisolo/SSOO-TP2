@@ -93,12 +93,10 @@ void atender_controlador(int nro_controlador) {
 void *controlador(void *nro_controlador_ptr) {
 	int nro_controlador = * (int*) nro_controlador_ptr;
 	delete (int*) nro_controlador_ptr;
-
-	bool sale = false;
 	printf("Nuevo controlador aceptado! nro_controlador: %d\n", nro_controlador);
-	while (!sale) {
+	//Los controladores pueden manterse conectados incluso si el juego termina
+	while (true) {
 		atender_controlador(nro_controlador);
-		sale = model->termino();
 	}
 
 	printf("Terminando thread de controlador %d\n", nro_controlador);
