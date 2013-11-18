@@ -378,12 +378,14 @@ Pendiente
 
 \begin{pseudo}
     \Procedure{modelo::finalizar}{}
-    	\If{$jugando \neq$ \texttt{DISPAROS}} \PReturn{-\texttt{ERROR\_JUEGO\_NO\_COMENZADO}} \EndIf
-    	\For{$i \leftarrow 0$ To $max\_jugadores$ - 1}
-    		\If{$jugadores[i] \neq$ \texttt{NULL}}
+    	\If{$jugando \neq$ \texttt{DISPAROS}}
+            \State \PReturn{-\texttt{ERROR\_JUEGO\_NO\_COMENZADO}}
+        \EndIf
+    	\For{$i \leftarrow 0$ \To $max\_jugadores - 1$}
+    		\If{$jugadores[i] \neq$ \Null}
     			\State $evento  \leftarrow$ \Fn{evento}{0, i, 0, 0, \texttt{EVENTO\_START}}
     			\State \Fn{wlock}{locks\_eventos[i]}
-    			\State eventos[i].\Fn{push}{evento}
+    			\State $eventos[i].$\Fn{push}{evento}
     			\State \Fn{wunlock}{locks\_eventos[i]}
     		\EndIf
     	\EndFor
