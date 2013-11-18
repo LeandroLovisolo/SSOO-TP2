@@ -587,17 +587,47 @@ Pendiente
 
 \subsection{Modelo::hayEventos}
 
-Pendiente
+\begin{pseudo}
+    \Procedure{hayEventos}{$s\_id$}
+        \State \Fn{rlock}{locks\_eventos[s\_id]}
+        \State $eventos \leftarrow eventos[s\_id]$.\Fn{size}{} $> 0$
+        \State \Fn{runlock}{locks\_eventos[s\_id]}
+        \State \PReturn{eventos}
+    \EndProcedure
+\end{pseudo}
 
 
 \subsection{Modelo::dameEvento}
 
-Pendiente
+\begin{pseudo}
+    \Procedure{dameEvento}{$s\_id$}
+        \State \Fn{wlock}{locks\_eventos[s\_id]}
+        \State $retorno \leftarrow eventos[s\_id]$.\Fn{front}{}
+        \State $eventos[s_id]$.\Fn{pop}{}
+        \State \Fn{wunlock}{locks\_eventos[s\_id]}
+        \State \PReturn{eretorno}
+    \EndProcedure
+\end{pseudo}
 
 
-\subsection{Modelo::actualizarJugador}
+\subsection{Modelo::actualizar\_jugador}
 
-Pendiente
+\begin{pseudo}
+    \Procedure{actualizar\_jugador}{$s\_id$}
+        \State $tocado \leftarrow$ \Fn{tocar}{s\_id, tiros[s\_id].t\_id}
+        \State \Fn{wlock}{locks\_eventos[s\_id]}
+        \If{$eventos[s\_id]$.\Fn{size}{} $> 0$}
+            \State $retorno \leftarrow eventos[s\_id]$.\Fn{front}{}
+            \State $eventos[s\_id]$.\Fn{pop}{}
+            \State \Fn{wunlock}{locks\_eventos[s\_id]}
+            \State \PReturn{retorno}
+        \Else
+            \State $retorno \leftarrow$ \Fn{evento}{s\_id, -1, 0, 0, -tocado}
+            \State \Fn{wunlock}{locks\_eventos[s\_id]}
+            \State \PReturn{retorno}
+        \EndIf
+    \EndProcedure
+\end{pseudo}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
