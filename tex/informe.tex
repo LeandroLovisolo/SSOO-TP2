@@ -44,6 +44,13 @@
     \vspace{0.5em}%
 }
 
+% Cláusula return para usar así: \PReturn foo
+\newcommand{\PReturn}[1]{\textbf{return} $#1$}
+
+% Conectivos lógicos
+\newcommand{\PAnd}{\textbf{and} }
+\newcommand{\POr}{\textbf{or} }
+
 % Llamada a función para usar así: \Fn{Foo}{bar, baz}.
 % Produce \textsc{Foo}$(bar, baz)$.
 \newcommand{\Fn}[2]{\textsc{#1}$(#2)$}
@@ -251,7 +258,43 @@ Pendiente
 
 \subsection{Modelo::ubicar}
 
-Pendiente
+\begin{pseudo}
+    \Procedure{Modelo::ubicar}{t\_id, xs, ys, tamanio}
+        \State \Fn{wlock}{lock\_jugando}
+        \If{jugando $\neq$ \texttt{SETUP}}
+            \State \Fn{wunlock}{lock\_jugando}
+            \State \PReturn{- \texttt{ERROR\_JUEGO\_EN\_PROGRESO}}
+        \EndIf
+        \State
+        \State \Fn{wlock}{locks\_jugadores[t\_id]}
+        \If{jugadores[t\_id] = \texttt{NULL}}
+            \State \Fn{wunlock}{locks\_jugadores[t\_id]}
+            \State \Fn{wunlock}{lock\_jugando}
+            \State \PReturn{- \texttt{ERROR\_JUGADOR\_INEXISTENTE}}
+        \EndIf
+        \State
+        \State $retorno \leftarrow jugadores[t\_id].$\Fn{ubicar}{xs, ys, tamanio}
+        \State
+        \If{$retorno \neq$ \texttt{ERROR\_NO\_ERROR}}
+            \State \Fn{borrar\_barcos}{t\_id}
+        \EndIf
+        \State
+        \If{$retorno = $ \texttt{ERROR\_NO\_ERROR} \PAnd $jugadores[t\_id].$\Fn{listo}{}} \Comment{Si el jugador está listo}
+            \State \Fn{wlock}{lock\_jugadores\_listos}
+            \State $jugadores\_listos \leftarrow jugadores\_listos + 1$
+            \State
+            \If{$jugadores\_listos = max\_jugadores$} \Comment{Si ya están listos todos los jugadores}
+                \State \Fn{\_empezar}{}
+            \EndIf
+            \State \Fn{wunlock}{lock\_jugadores\_listos}
+        \EndIf
+        \State
+        \State \Fn{wunlock}{locks\_jugadores[t\_id]}
+        \State \Fn{wunlock}{locks\_jugando}
+        \State \PReturn{retorno}
+    \EndProcedure
+\end{pseudo}
+
 
 
 \subsection{Modelo::borrar\_barcos}
