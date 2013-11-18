@@ -248,7 +248,6 @@ A continuación listamos el conjunto de campos de la clase \textsc{Modelo} que p
     \item{$cantidad\_jugadores$: $lock\_cantidad\_jugadores$.}
     \item{$jugadores\_listos$: $lock\_jugadores\_listos$.}
     \item{$jugadores[]$: $locks\_jugadores[]$.}
-    \item{$tiros[]$: $locks\_tiros[]$.}
     \item{$eventos[]$: $locks\_eventos[]$.}
     \item{$jugando$: $lock\_jugando$.}    
 \end{itemize}
@@ -286,6 +285,9 @@ A continuación listamos el conjunto de campos de la clase \textsc{Modelo} que p
             \State \Fn{runlock}{lock\_jugando}
             \State \PReturn{- \texttt{ERROR\_MAX\_JUGADORES}}
         \EndIf
+        \State
+        \State Protegemos la variable cantidad\_jugadores con un write lock contra otros incrementos por nuevos jugadores que se agregan
+        y para asegurar la lectura correcta de la variable al ubicar barcos.
         \State
         \State \Fn{wlock}{lock\_cantidad\_jugadores}
         \State $cantidad\_jugadores \leftarrow cantidad\_jugadores + 1$
@@ -511,7 +513,6 @@ Si no se abriera este método en los dos casos mencionados, tendríamos un únic
         \State
         \State $retorno \leftarrow$ \texttt{RESULTADO\_APUNTADO\_DENEGADO}
         \State
-        \State \Fn{wlock}{locks\_tiros[s\_id]}
         \If{$tiros[s\_id].$\Fn{es\_posible\_apuntar}{}}
             \State $retorno \leftarrow jugadores[t\_id].$\Fn{apuntar}{s\_id, x, y}
             \If{$retorno = $ \texttt{RESULTADO\_APUNTADO\_ACEPTADO}}
@@ -523,7 +524,6 @@ Si no se abriera este método en los dos casos mencionados, tendríamos un únic
                 \State \Fn{wunlock}{locks\_eventos[t\_id]}
             \EndIf
         \EndIf
-        \State \Fn{wunlock}{locks\_tiros[s\_id]}
         \State
         \State \Fn{wunlock}{locks\_jugadores[s\_id]}
         \State \Fn{wunlock}{locks\_jugadores[t\_id]}
@@ -552,8 +552,6 @@ Si no se abriera este método en los dos casos mencionados, tendríamos un únic
         \EndIf
         \State
         \State $retorno \leftarrow$ -\texttt{ERROR\_ETA\_NO\_TRANSCURRIDO}
-        \State
-        \State \Fn{wlock}{locks\_tiros[s\_id]}
         \State
         \If{$tiros[s\_id].$\Fn{es\_posible\_tocar}{}}
             \State
@@ -585,6 +583,9 @@ Si no se abriera este método en los dos casos mencionados, tendríamos un únic
                 \State \Fn{wunlock}{locks\_eventos[s\_id]}
                 \State
                 \If{$murio$}
+                    \State 
+                    \State Tomamos el lock de la variable lock\_cantidad\_jugadores para asegurar su correcta escritura en caso de que dos jugadores pierdan sus barcos al mismo tiempo.
+                    \State 
                     \State \Fn{wlock}{lock\_cantidad\_jugadores}
                     \State $cantidad\_jugadores \leftarrow cantidad\_jugadores - 1$
                     \If{$cantidad\_jugadores = 1$}
@@ -607,7 +608,6 @@ Si no se abriera este método en los dos casos mencionados, tendríamos un únic
             \State \Fn{wunlock}{locks\_jugadores[s\_id]}
         \EndIf
         \State
-        \State \Fn{wunlock}{locks\_tiros[s\_id]}
         \State \Fn{wunlock}{lock\_jugando}
         \State
         \State \PReturn{retorno}
