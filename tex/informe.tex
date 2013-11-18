@@ -402,7 +402,6 @@ Pendiente
     	\State \Fn{wlock}{locks\_jugadores[s_id]}
     	\State $retorno \leftarrow$ jugadores[s\_id].\Fn{ack}{}
     	\State \Fn{wunlock}{locks\_jugadores[s\_id]}
-
     	\State \PReturn{retorno}
     \EndProcedure
 \end{pseudo}
@@ -413,21 +412,21 @@ Pendiente
 \begin{pseudo}
     \Procedure{termino}{}
     	\State \Fn{rlock}{lock\_jugando}
-    	\If{$jugando$ = SETUP}
+    	\If{$jugando$ = \texttt{SETUP}}
     		\State \Fn{runlock}{lock\_jugando}
-    		\State false
+    		\State \PReturn{\PFalse}
     	\EndIf
     	\State \Fn{runlock}{lock\_jugando}
-
-        \For{$i \leftarrow 0$ To $max\_jugadores$ - 1}
-        	\State \Fn{rlock}{locks_jugadores[i]}
-            \If{!jugadores[i].Fn{termino{}}}
+        \State
+        \For{$i \leftarrow 0$ \To $max\_jugadores$ - 1}
+        	\State \Fn{rlock}{locks\_jugadores[i]}
+            \If{\PNot $jugadores[i].$\Fn{termino}{}}
             	\State \Fn{runlock}{locks\_jugadores[i]}
-                \State \PReturn{false}
+                \State \PReturn{\PFalse}
             \EndIf
-            \State \Fn{runlock}{locks_jugadores[i]}
+            \State \Fn{runlock}{locks\_jugadores[i]}
         \EndFor
-        \State \PReturn{true}
+        \State \PReturn{\PTrue}
     \EndProcedure
 \end{pseudo}
 
