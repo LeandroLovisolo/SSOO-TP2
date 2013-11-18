@@ -666,6 +666,54 @@ mientras se remueve un elemento de la cola.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Jsonificador                                                              %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Server}
+A continuación documentaremos las modificaciones hechas al servidor.
+
+\begin{itemize}
+\item Se crea la función abrir\_socket\_controladores() que crea el socket correspondiente para la escucha de nuevos controladores
+\item Se crea la función controlador() para atender las comunicaciones entre un controlador y el servidor.
+\item Se crea la función aceptar\_controladores() que es llamada en un nuevo thread para atender las nuevas conexiones de hasta un máximo de MAX\_CONTROLADORES controladores. Esta función crea un nuevo thread llamando a la función controlador() para atender a cada controlador de manera simultánea.
+
+Aceptar\_controladores  se llama en un nuevo thread para asegurar la disponibilidad de controladores durante todo momento en el juego.
+\item Se crea la función abrir\_socket\_jugadores() que crea el socket correspondiente para la escucha de nuevos jugadores con el sentido de tener una mejor modularización del código.
+\item Se crea la función jugador() la cual atenderá los mensajes de los jugadores con el servidor hasta que el juego haya terminado.
+\item Se modifica acceptar\_jugadores() para que al conectarse un nuevo jugador, se cree un nuevo thread llamando a la función jugador() con el objetivo de atender jugadores de manera simultanea.
+\item Una vez aceptados todos los jugadores, se utiliza pthread\_join() para realizar la espera de los threads relacionados a los jugadores ya que es necesario esperar hasta que terminen las comunicaciones para cerrar el servidor.
+\item Finalmente, el servidor cierra los sockets utilizados tanto para atender nuevas conexiones de controladores y jugadores, como para realizar la comunicación entre ellos y el servidor.
+\end{itemize}
+
+Prsentamos el pseudocódigo de jugador() y controlador()
+
+\begin{pseudo}
+\Procedure{jugador}{nro\_jugador\_ptr}
+    \State $nro\_jugador \leftarrow$ * ($int$*) $nro\_jugador\_ptr$
+    \State \Fn{delete}{(int*) nro\_jugador\_ptr}
+    \State $sale \leftarrow$ false
+    \State
+    \State Mientras que no termine el juego, atiendo los pedidos de los jugadores
+    \State
+    \While{!sale}
+        \State \Fn{atender\_jugador}{nro\_jugador}
+        \State $sale \leftarrow$ model-$>$\Fn{termino}{}
+    \EndWhile
+    \State \PReturn{0}
+\EndProcedure
+\State
+\Procedure{controlador}{nro\_controlador\_ptr}
+    \State $nro\_controlador \leftarrow $* (int*) $nro\_controlador\_ptr$
+    \State \Fn{delete}{(int*) nro\_controlador\_ptr}
+    \State $sale \leftarrow$ false
+    \While{!sale}
+        \State \Fn{atender\_controlador}{nro\_controlador}
+        \State $sale \leftarrow$ model-$>$\Fn{termino}{}
+    \EndWhile
+    \State \PReturn{0}
+\EndProcedure
+
+\end{pseudo}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Jsonificador                                                              %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \section{Jsonificador}
