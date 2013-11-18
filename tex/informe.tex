@@ -462,11 +462,16 @@ Si no se abriera este método en los dos casos mencionados, tendríamos un únic
 
 \begin{pseudo}
     \Procedure{Modelo::quitarJugador}{$s\_id$}
+        \State
+        \State Tomamos lock de lectura para evitar que se transicione hacia la fase \texttt{DISPAROS} mientras quitamos al jugador $s\_id$.
+        \State
     	\State \Fn{rlock}{lock\_jugando}
     	\If{$jugando \neq$ \texttt{SETUP}}
     		\State \Fn{runlock}{lock\_jugando}
     		\State \PReturn{-\texttt{ERROR\_JUEGO\_EN\_PROGRESO}}
     	\EndIf
+        \State
+        \State Tomamos lock de escritura para evitar accesos a memoria inválidos mientras liberamos la memoria ocupada por los datos del jugador.
         \State
     	\State \Fn{wlock}{locks\_jugadores[s\_id]}
     	\If{$jugadores[s\_id]$ = \Null}
