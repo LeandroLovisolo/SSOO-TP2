@@ -618,7 +618,7 @@ Si no se abriera este método en los dos casos mencionados, tendríamos un únic
 
 
 \subsection{Modelo::hayEventos}
-
+Tomamos lock de lectura para la cola de eventos del jugador para evitar que cambie el tamaño de esta.
 \begin{pseudo}
     \Procedure{hayEventos}{$s\_id$}
         \State \Fn{rlock}{locks\_eventos[s\_id]}
@@ -630,7 +630,9 @@ Si no se abriera este método en los dos casos mencionados, tendríamos un únic
 
 
 \subsection{Modelo::dameEvento}
-
+Tomamos lock de escritura sobre la cola de eventos del jugador para evitar lecturas por parte del
+ciclo principal de su thread en server.cpp y escrituras por parte de funciones como apuntar y tocar
+mientras se remueve un evento de la cola.
 \begin{pseudo}
     \Procedure{dameEvento}{$s\_id$}
         \State \Fn{wlock}{locks\_eventos[s\_id]}
@@ -643,7 +645,8 @@ Si no se abriera este método en los dos casos mencionados, tendríamos un únic
 
 
 \subsection{Modelo::actualizar\_jugador}
-
+Tomamos un lock de escritura sobre los eventos del jugador para protegerla contra escrituras o lecturas
+mientras se remueve un elemento de la cola. 
 \begin{pseudo}
     \Procedure{actualizar\_jugador}{$s\_id$}
         \State $tocado \leftarrow$ \Fn{tocar}{s\_id, tiros[s\_id].t\_id}
