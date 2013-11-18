@@ -399,15 +399,50 @@ Pendiente
 \EndProcedure
 \end{pseudo}
 \subsection{Modelo::termino}
+\begin{pseudo}
+\Procedure{termino}{}
+	\State \Fm{rlock}{lock\_jugando}
+	\If{$jugando$ = SETUP}
+		\State \Fn{runlock}{lock\_jugando}
+		\State false
+	\EndIf
+	\State \Fn{runlock}{lock\_jugando}
 
-Pendiente
-
+    \For{$i \leftarrow 0$ To $max\_jugadores$ - 1}
+    	\State \Fn{rlock}{locks_jugadores[i]}
+        \If{!jugadores[i].Fn{termino{}}}
+        	\State \Fn{runlock}{locks\_jugadores[i]}
+            \State \PReturn{false}
+        \EndIf
+        \State \Fn{runlock}{locks_jugadores[i]}
+    \EndFor
+    \State \PReturn{true}
+\EndProcedure
+\end{pseudo}
 
 \subsection{Modelo::quitarJugador}
+\begin{pseudo}
+\Procedure{Modelo::quitarJugador}{s\_id}
+	\State \Fn{rlock}{lock\_jugando}
+	\If{$jugando \neq$ \texttt{SETUP}}
+		\State \Fn{runlock}{lock\_jugando}
+		\State \PReturn{-\texttt{ERROR_JUEGO_EN_PROGRESO}}
+	\EndIf
+	\State \Fn{wlock}{locks\_jugadores[s\_id]}
+	\If{$jugadores[s\_id]$ = \texttt{NULL}}
+		\State \Fn{wunlock}{locks\_jugadores[s\_id]}
+		\State \Fn{runlock}{lock\_jugando}
+		\State \PReturn{-\texttt{ERROR_JUGADOR_INEXISTENTE}}
+	\EndIf
 
-Pendiente
+	\State \Fn{delete}{jugadores[s\_id]}
+	$jugadores[s_id] \leftarrow$ \texttt{NULL}
 
-
+	\State \Fn{wunlock}{locks\_jugadores[s\_id]}
+	\State \Fm{runlock}{lock\_jugando}
+	\State \PReturn{\texttt{ERROR_NO_ERROR}}
+\EndProcedure
+\end{pseudo}
 \subsection{Modelo::apuntar}
 
 Pendiente
