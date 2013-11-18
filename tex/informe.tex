@@ -350,11 +350,6 @@ Pendiente
 \end{pseudo}
 
 
-\subsection{Modelo::borrar\_barcos}
-
-Pendiente
-
-
 \subsection{Modelo::empezar}
 
 Separamos este método en dos partes: \textsc{Modelo::empezar}, que toma write lock sobre $jugando$ y llama a \textsc{Modelo::\_empezar}, que asume que ya se tiene el write lock sobre $jugando$ y realiza la operación de empezar. El método \textsc{Modelo::empezar} se llama desde la clase \textsc{Decodificador}, que no tiene acceso a dicho lock directamente, mientras que \textsc{Modelo::\_empezar} se llama desde \textsc{Modelo::ubicar}, que ya toma lock de escritura sobre $jugando$ para proteger operaciones anteriores a \textsc{Modelo::\_empezar}.
