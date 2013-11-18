@@ -402,6 +402,9 @@ Si no se abriera este método en los dos casos mencionados, tendríamos un únic
     	\For{$i \leftarrow 0$ \To $max\_jugadores - 1$}
     		\If{$jugadores[i] \neq$ \Null}
     			\State $evento  \leftarrow$ \Fn{evento}{0, i, 0, 0, \texttt{EVENTO\_START}}
+                \State
+                \State Tomamos write lock de la cola de eventos del jugador para evitar que ésta se lea desde el ciclo principal de su thread en server.cpp mientras agregamos el nuevo evento.
+                \State
     			\State \Fn{wlock}{locks\_eventos[i]}
     			\State $eventos[i].$\Fn{push}{evento}
     			\State \Fn{wunlock}{locks\_eventos[i]}
@@ -417,6 +420,9 @@ Si no se abriera este método en los dos casos mencionados, tendríamos un únic
 
 \begin{pseudo}
     \Procedure{modelo::ack}{}
+        \State
+        \State Tomamos write lock para evitar lecturas mientras registramos el ack.
+        \State
     	\State \Fn{wlock}{locks\_jugadores[s_id]}
     	\State $retorno \leftarrow$ jugadores[s\_id].\Fn{ack}{}
     	\State \Fn{wunlock}{locks\_jugadores[s\_id]}
