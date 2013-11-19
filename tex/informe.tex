@@ -686,7 +686,7 @@ A continuación documentaremos las modificaciones hechas al servidor.
 \begin{itemize}
     \item Se crea la función abrir\_socket\_controladores() que crea el socket correspondiente para la escucha de nuevos controladores
     
-    \item Se crea la función controlador() para atender las comunicaciones entre un controlador y el servidor.
+    \item Se crea la función controlador() para atender las comunicaciones entre un controlador y el servidor. El código de ésta función difiere del código del servidor monothread en tanto que en lugar de invocarse a atender\_controlador() mientras que el juego no haya terminado, se invoca de forma indeterminada para permitirles a los controladores realizar consultas aún después que el juego haya terminado.
     
     \item Se crea la función aceptar\_controladores() que es llamada en un nuevo thread para atender las nuevas conexiones de hasta un máximo de MAX\_CONTROLADORES controladores. Esta función crea un nuevo thread llamando a la función controlador() para atender a cada controlador de manera simultánea.
 
@@ -700,6 +700,8 @@ A continuación documentaremos las modificaciones hechas al servidor.
     
     \item Una vez aceptados todos los jugadores, se utiliza pthread\_join() para realizar la espera de los threads relacionados a los jugadores ya que es necesario esperar hasta que terminen las comunicaciones para cerrar el servidor.
     
+    \item Una vez que joinearon todos los threads de jugadores, se cierra el socket de controladores para evitar conexiones de nuevos controladores, y se espera que los threads de controladores terminen de ejecutarse por medio de pthread\_join().
+
     \item Finalmente, el servidor cierra los sockets utilizados tanto para atender nuevas conexiones de controladores y jugadores, como para realizar la comunicación entre ellos y el servidor.
 \end{itemize}
 
@@ -726,13 +728,14 @@ Prsentamos el pseudocódigo de jugador() y controlador()
         \State $nro\_controlador \leftarrow *nro\_controlador\_ptr$
         \State \Fn{delete}{nro\_controlador\_ptr}
         \State $sale \leftarrow$ \PFalse
-        \While{\PNot $sale$}
+        \While{\PTrue}
             \State \Fn{atender\_controlador}{nro\_controlador}
-            \State $sale \leftarrow model.$\Fn{termino}{}
         \EndWhile
         \State \PReturn{0}
     \EndProcedure
 \end{pseudo}
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Jsonificador                                                              %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
