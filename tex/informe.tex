@@ -263,7 +263,7 @@ A continuación listamos el conjunto de campos de la clase \textsc{Modelo} que p
         \State \Fn{rlock}{lock\_jugando}
         \If{$jugando \neq$ \texttt{SETUP}}
             \State \Fn{runlock}{lock\_jugando}
-            \State return -\texttt{ERROR\_JUEGO\_EN\_PROGRESO}
+            \State \PReturn{-\texttt{ERROR\_JUEGO\_EN\_PROGRESO}}
         \EndIf
         \State  
         \State $nuevoid \leftarrow$ 0
