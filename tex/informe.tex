@@ -247,7 +247,7 @@ A continuación documentaremos las modificaciones hechas al servidor.
 \begin{itemize}
     \item Se crea la función abrir\_socket\_controladores() que crea el socket correspondiente para la escucha de nuevos controladores
     
-    \item Se crea la función controlador() para atender las comunicaciones entre un controlador y el servidor. El código de ésta función difiere del código del servidor monothread en tanto que en lugar de invocarse a atender\_controlador() mientras que el juego no haya terminado, se invoca de forma indeterminada para permitirles a los controladores realizar consultas aún después que el juego haya terminado.
+    \item Se crea la función controlador() para atender las comunicaciones entre un controlador y el servidor. La función controlador() queda atendiendo las comunicaciones de forma indeterminada, a diferencia de la función jugador(), que sólo atiende las comunicaciones hasta que la partida termina.
     
     \item Se crea la función aceptar\_controladores() que es llamada en un nuevo thread para atender las nuevas conexiones de hasta un máximo de MAX\_CONTROLADORES controladores. Esta función crea un nuevo thread llamando a la función controlador() para atender a cada controlador de manera simultánea.
 
