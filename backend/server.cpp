@@ -113,10 +113,10 @@ void* aceptar_controladores(void *arg) {
 	for (int i = 0; i < MAX_CONTROLADORES; i++) {
 		t = sizeof(remote);
 		if ((s_controladores[i] = accept(sock_controladores, (struct sockaddr*) &remote, (socklen_t*) &t)) == -1) {
-			// Si se acepta una conexión luego que se cerro el sock_controladores, se produce
-			// un error "Bad file descriptor". En lugar de cerrar el servidor, simplemente
-			// terminamos el thread.
-			printf("aceptar_controladores: accept() devolvió -1, terminando\n");
+			// accept() devuelve -1 al cerrarse como consecuencia a la llamada a shutdown() que cierra el
+			// socket de controladores. Cuando ocurre esto es porque dejamos de aceptar nuevos controladores,
+			// entonces simplemente terminamos este thread.
+			perror("aceptar_controladores: accept() devolvió -1");
 			return NULL;
 
 			// perror("aceptando la conexión entrante");
@@ -133,8 +133,7 @@ void* aceptar_controladores(void *arg) {
 		num_threads_controladores++;
 	}
 
-	printf("aceptar_controladores: terminando\n");
-
+	printf("aceptar_controladores: se alcanzo el límite de controladores, terminando\n");
 	return NULL;
 }
 
