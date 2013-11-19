@@ -182,12 +182,9 @@ error Modelo::ack(int s_id){
 }
 
 bool Modelo::termino() {
-	lock_jugando.rlock();
 	if(this->jugando == SETUP) {
-		lock_jugando.runlock();
 		return false;
 	}
-	lock_jugando.runlock();
 
     for(int i = 0; i < max_jugadores; i++){
     	locks_jugadores[i].rlock();
