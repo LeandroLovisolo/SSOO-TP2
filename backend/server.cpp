@@ -45,6 +45,8 @@ char buf_jugadores[MAX_JUGADORES][MAX_MSG_LENGTH]; 	// Buffer de recepción de m
 char buf_controladores[MAX_MSG_LENGTH]; 			// Buffer de recepción de mensajes de los controladores
 int s_jugadores[MAX_JUGADORES];						// Sockets de los jugadores
 int s_controladores[MAX_CONTROLADORES];				// Sockets de los controladores
+pthread_t threads_controladores[MAX_CONTROLADORES]; // Threads de los controladores
+int num_threads_controladores;						// Número de threads de controladores usados
 int ids[MAX_JUGADORES];								// Ids de los jugadores
 Modelo * model = NULL;								// Puntero al modelo del juego
 Decodificador *decoder  = NULL;						// Puntero al decodificador
@@ -105,15 +107,20 @@ void *controlador(void *nro_controlador_ptr) {
 
 /* Acepta todas las conexiones entrantes */
 void* aceptar_controladores(void *arg) {
-	pthread_t threads[MAX_CONTROLADORES];
 	struct sockaddr_in remote;
 	int t;
 
 	for (int i = 0; i < MAX_CONTROLADORES; i++) {
 		t = sizeof(remote);
 		if ((s_controladores[i] = accept(sock_controladores, (struct sockaddr*) &remote, (socklen_t*) &t)) == -1) {
-			perror("aceptando la conexión entrante");
-			exit(1);
+			// Si se acepta una conexión luego que se cerro el sock_controladores, se produce
+			// un error "Bad file descriptor". En lugar de cerrar el servidor, simplemente
+			// terminamos el thread.
+			printf("aceptar_controladores: accept() devolvió -1, terminando\n");
+			return NULL;
+
+			// perror("aceptando la conexión entrante");
+			// exit(1);			
 		}
 		printf("Se conectó un controlador. i = %d\n", i);
 		int flag = 1;
@@ -122,8 +129,11 @@ void* aceptar_controladores(void *arg) {
 				TCP_NODELAY,     /* name of option */
 				(char *) &flag,  /* the cast is historical */
 				sizeof(int));    /* length of option value */
-		pthread_create(&threads[i], NULL, controlador, new int(i));
+		pthread_create(&threads_controladores[i], NULL, controlador, new int(i));
+		num_threads_controladores++;
 	}
+
+	printf("aceptar_controladores: terminando\n");
 
 	return NULL;
 }
@@ -321,13 +331,25 @@ int main(int argc, char * argv[]) {
 	printf("Los puntajes finales son:\n");
 	model->printPuntajes();
 
-    printf("Termino el juego, cerrando\n");
+    printf("Termino el juego, esperando a que se desconecten los controladores...\n");
+
+    // Cerrar el socket de controladores para evitar que se conecten nuevos controladores.
+    // Usamos shutdown en lugar de close para despertar al accept() en aceptar_controladores,
+    // de acuerdo a lo que dice acá: http://stackoverflow.com/questions/2486335/wake-up-thread-blocked-on-accept-call
+    shutdown(sock_controladores, SHUT_RDWR);
+
+    // Esperar a que se desconecten todos los controladores
+    for(int i = 0; i < num_threads_controladores; i++) {
+    	pthread_join(threads_controladores[i], NULL);
+    	printf("Joineó el thread del controlador %d\n", i);
+    }
+
+    printf("Cerrando\n");
 
     // Cerrar los sockets
 	for (int i = 0; i < n; i++) close(s_jugadores[i]);
 	for (int i = 0; i < MAX_CONTROLADORES; i++) close(s_controladores[i]);
 	close(sock_jugadores);
-	close(sock_controladores);
 
 	return 0;
 }
