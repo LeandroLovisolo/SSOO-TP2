@@ -668,14 +668,14 @@ Esta función no aporta funcionalidad a la sincronización, pero fue agregada a 
 \begin{pseudo}
     \Procedure{printPuntaje}{}
         \For{$i \leftarrow$ 0 \To $jugadores\_listos$ - 1}
-            \State \Fn{printf}{$"Nombre: \%s - Puntaje: \%d"$, jugadores[i]\to \Fn{dame\_nombre}{}.\Fn{c\_str}{}, jugadores[i]\to \Fn{dame\_puntaje}{}}
+            \State \Fn{printf}{$"Nombre: \%s - Puntaje: \%d"$, jugadores[i].\Fn{dame\_nombre}{}.\Fn{c\_str}{}, jugadores[i].\Fn{dame\_puntaje}{}}
         \EndFor
     \EndProcedure
 \end{pseudo}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Jsonificador                                                              %%
+%% Server                                                                    %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Server}
 A continuación documentaremos las modificaciones hechas al servidor.
