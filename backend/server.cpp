@@ -75,13 +75,16 @@ void atender_controlador(int nro_controlador) {
 	if (recibido < 0) {
 		perror("Recibiendo ");
 	} else if (recibido > 0) {
+		// strtok() thread safe
+		char *save_ptr;
+
 		buf_controladores[nro_controlador][recibido]='\0';
-		char * pch = strtok(buf_controladores[nro_controlador], "|");
+		char * pch = strtok_r(buf_controladores[nro_controlador], "|", &save_ptr);
 		while (pch != NULL) {
 			//Ejecutar y responder
 			resp = decoder->decodificar(pch);
 			send(s_controladores[nro_controlador], resp.c_str(), resp.length() +1, 0);
-			pch = strtok(NULL, "|");
+			pch = strtok_r(NULL, "|", &save_ptr);
 		}
 	} else { /* recibido == 0 */
 		// Extraído de la man page de recv(): "If no messages are available to be received
@@ -147,9 +150,12 @@ void atender_jugador(int i) {
 		
 	} else if (recibido > 0) {
 		buf_jugadores[i][recibido]='\0';
+		// strtok() thread safe
+		char *save_ptr;
+
 		// Separo los mensajes por el caracter |
 
-		char * pch = strtok(buf_jugadores[i], "|");
+		char * pch = strtok_r(buf_jugadores[i], "|", &save_ptr);
 		while (pch != NULL) {
 			
 			// No muestro por pantalla los NOP, son muchos
@@ -181,7 +187,7 @@ void atender_jugador(int i) {
 					hayEventos = model->hayEventos(ids[i]);
 				}
 			}
-			pch = strtok(NULL, "|");
+			pch = strtok_r(NULL, "|", &save_ptr);
 		}
 	} else { /* recibido == 0 */
 		// Extraído de la man page de recv(): "If no messages are available to be received
