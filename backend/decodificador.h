@@ -17,6 +17,7 @@
 class Decodificador {
 public:
 	Decodificador(Modelo *mod);
+	Decodificador(const Decodificador &that);
 	~Decodificador();
 	std::string     decodificar(const char * mensaje);
     int             dameIdJugador(const char * mensaje);

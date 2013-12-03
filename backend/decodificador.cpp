@@ -17,7 +17,11 @@ using namespace std;
 Decodificador::Decodificador(Modelo *mod) {
     this->modelo = mod;
 	this->jsonificador = new Jsonificador(mod);
+}
 
+Decodificador::Decodificador(const Decodificador &that) {
+	this->modelo = that.modelo;
+	this->jsonificador = new Jsonificador(this->modelo);
 }
 
 Decodificador::~Decodificador() {
