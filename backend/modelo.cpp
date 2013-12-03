@@ -248,26 +248,51 @@ int Modelo::apuntar(int s_id, int t_id, int x, int y, int *eta) {
 	// No permito que me dispare a ninguno de los dos
 	// barcos mientras proceso el tiro actual.
 	// Solo hago el lock si no se apunta a si mismo, si no, existe deadlock
-	if(s_id != t_id) {
+	// Lock a los jugadores los jugadores
+	if(s_id < t_id) {
 		locks_jugadores[s_id].wlock();
+		locks_jugadores[t_id].wlock();
 	}
-	locks_jugadores[t_id].wlock();
+	else {
+		locks_jugadores[t_id].wlock();
+		if(s_id != t_id) {
+			locks_jugadores[s_id].wlock();
+		}
+	}
 
 	if (this->jugadores[s_id] == NULL || this->jugadores[t_id] == NULL) {
 		lock_jugando.runlock();
-		if(s_id != t_id) {
+
+		// Unlock los jugadores
+		if(s_id < t_id) {
 			locks_jugadores[s_id].wunlock();
+			locks_jugadores[t_id].wunlock();
 		}
-		locks_jugadores[t_id].wunlock();
+		else {
+			locks_jugadores[t_id].wunlock();
+			if(s_id != t_id) {
+				locks_jugadores[s_id].wunlock();
+			}
+		}
+
 		return -ERROR_JUGADOR_INEXISTENTE;
 	}
 
 	if(!this->jugadores[s_id]->esta_vivo()) {
 		lock_jugando.runlock();
-		if(s_id != t_id) {
+
+		// Unlock los jugadores
+		if(s_id < t_id) {
 			locks_jugadores[s_id].wunlock();
+			locks_jugadores[t_id].wunlock();
 		}
-		locks_jugadores[t_id].wunlock();
+		else {
+			locks_jugadores[t_id].wunlock();
+			if(s_id != t_id) {
+				locks_jugadores[s_id].wunlock();
+			}
+		}
+
 		return -ERROR_JUGADOR_HUNDIDO;
 	}
 
@@ -284,10 +309,18 @@ int Modelo::apuntar(int s_id, int t_id, int x, int y, int *eta) {
 			locks_eventos[t_id].wunlock();
 		}
 	}
-	if(s_id != t_id) {
+	// Unlock los jugadores
+	if(s_id < t_id) {
 		locks_jugadores[s_id].wunlock();
+		locks_jugadores[t_id].wunlock();
 	}
-	locks_jugadores[t_id].wunlock();
+	else {
+		locks_jugadores[t_id].wunlock();
+		if(s_id != t_id) {
+			locks_jugadores[s_id].wunlock();
+		}
+	}
+
 	lock_jugando.runlock();
 	return retorno;
 	
@@ -318,11 +351,18 @@ int Modelo::tocar(int s_id, int t_id) {
 
 	if (this->tiros[s_id].es_posible_tocar()) {
 		// Evito deadlock con el mismo tirador
-		if(s_id != t_id) {
+
+		if(s_id < t_id) {
 			locks_jugadores[s_id].wlock();
+			locks_jugadores[t_id].wlock();
+		}
+		else {
+			locks_jugadores[t_id].wlock();
+			if(s_id != t_id) {
+				locks_jugadores[s_id].wlock();
+			}
 		}
 
-		locks_jugadores[t_id].wlock();
 
 		int x = this->tiros[s_id].x;
 		int y = this->tiros[s_id].y;
@@ -370,11 +410,17 @@ int Modelo::tocar(int s_id, int t_id) {
 			this->jugadores[s_id]->agregar_puntaje(PUNTAJE_MAGALLANES);
 		}
 
-		if(s_id != t_id) {
+		// Unlock los jugadores
+		if(s_id < t_id) {
 			locks_jugadores[s_id].wunlock();
+			locks_jugadores[t_id].wunlock();
 		}
-
-		locks_jugadores[t_id].wunlock();
+		else {
+			locks_jugadores[t_id].wunlock();
+			if(s_id != t_id) {
+				locks_jugadores[s_id].wunlock();
+			}
+		}
 	}
 
 	lock_jugando.wunlock();
