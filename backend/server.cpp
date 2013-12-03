@@ -23,6 +23,7 @@
 #include <modelo.h>
 #include <decodificador.h>
 #include <globales.h>
+#include <vector>
 
 #define MAX_MSG_LENGTH    4096
 #define MAX_JUGADORES     20
@@ -49,7 +50,8 @@ pthread_t threads_controladores[MAX_CONTROLADORES]; 		// Threads de los controla
 int num_threads_controladores;								// Número de threads de controladores usados
 int ids[MAX_JUGADORES];										// Ids de los jugadores
 Modelo * model = NULL;										// Puntero al modelo del juego
-Decodificador *decoder  = NULL;								// Puntero al decodificador
+std::vector<Decodificador> player_decoder;					// Vector de decodificadores de jugadores
+std::vector<Decodificador> controller_decoder;				// Vector de decodificadores de controladores
 int n, tamanio, tamanio_barcos;								// Variables de configuracion del juego.
 
 
@@ -58,11 +60,11 @@ void reset() {
 	if (model != NULL) {
 		delete model;
 	}
-	if (decoder != NULL) {
-		delete decoder;
-	}
 	model = new Modelo(n, tamanio, tamanio_barcos);
-	decoder = new Decodificador(model);
+	player_decoder.clear();
+	controller_decoder.clear();
+	player_decoder.resize(MAX_JUGADORES, Decodificador(model));
+	controller_decoder.resize(MAX_CONTROLADORES, Decodificador(model));
 }
 
 
@@ -82,7 +84,7 @@ void atender_controlador(int nro_controlador) {
 		char * pch = strtok_r(buf_controladores[nro_controlador], "|", &save_ptr);
 		while (pch != NULL) {
 			//Ejecutar y responder
-			resp = decoder->decodificar(pch);
+			resp = controller_decoder[nro_controlador].decodificar(pch);
 			send(s_controladores[nro_controlador], resp.c_str(), resp.length() +1, 0);
 			pch = strtok_r(NULL, "|", &save_ptr);
 		}
@@ -163,11 +165,11 @@ void atender_jugador(int i) {
 				printf("Recibido: %s\n", pch);
 			}
 			//Decodifico el mensaje y obtengo una respuesta
-			resp = decoder->decodificar(pch);
+			resp = player_decoder[i].decodificar(pch);
 			
 			// Si no se cual es el ID de este jugador, trato de obtenerlo de la respuesta
 			if (ids[i] == -1) {
-				ids[i] = decoder->dameIdJugador(resp.c_str());
+				ids[i] = player_decoder[i].dameIdJugador(resp.c_str());
 			}
 			
 			// Envio la respuesta
@@ -181,7 +183,7 @@ void atender_jugador(int i) {
 			if (ids[i] != -1) {
 				bool hayEventos = model->hayEventos(ids[i]);
 				while(hayEventos) {
-					resp = decoder->encodeEvent(ids[i]);
+					resp = player_decoder[i].encodeEvent(ids[i]);
 					printf("Enviando evento %s_jugadores", resp.c_str());
 					send(s_jugadores[i],resp.c_str(), resp.length() +1, 0);
 					hayEventos = model->hayEventos(ids[i]);
