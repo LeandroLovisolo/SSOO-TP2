@@ -25,8 +25,8 @@
 #include <globales.h>
 
 #define MAX_MSG_LENGTH    4096
-#define MAX_JUGADORES     1024
-#define MAX_CONTROLADORES 1024
+#define MAX_JUGADORES     20
+#define MAX_CONTROLADORES 20
 
 /* Setea un socket como no bloqueante */
 int no_bloqueante(int fd) {
@@ -39,18 +39,18 @@ int no_bloqueante(int fd) {
 
 
 /* Variables globales del server */
-int sock_jugadores;									// Socket donde se escuchan las conexiones entrantes
-int sock_controladores;			    				// Socket de controladores
-char buf_jugadores[MAX_JUGADORES][MAX_MSG_LENGTH]; 	// Buffer de recepción de mensajes de los jugadores
-char buf_controladores[MAX_MSG_LENGTH]; 			// Buffer de recepción de mensajes de los controladores
-int s_jugadores[MAX_JUGADORES];						// Sockets de los jugadores
-int s_controladores[MAX_CONTROLADORES];				// Sockets de los controladores
-pthread_t threads_controladores[MAX_CONTROLADORES]; // Threads de los controladores
-int num_threads_controladores;						// Número de threads de controladores usados
-int ids[MAX_JUGADORES];								// Ids de los jugadores
-Modelo * model = NULL;								// Puntero al modelo del juego
-Decodificador *decoder  = NULL;						// Puntero al decodificador
-int n, tamanio, tamanio_barcos;						// Variables de configuracion del juego.
+int sock_jugadores;											// Socket donde se escuchan las conexiones entrantes
+int sock_controladores;			    						// Socket de controladores
+char buf_jugadores[MAX_JUGADORES][MAX_MSG_LENGTH]; 			// Buffer de recepción de mensajes de los jugadores
+char buf_controladores[MAX_CONTROLADORES][MAX_MSG_LENGTH]; 	// Buffer de recepción de mensajes de los controladores
+int s_jugadores[MAX_JUGADORES];								// Sockets de los jugadores
+int s_controladores[MAX_CONTROLADORES];						// Sockets de los controladores
+pthread_t threads_controladores[MAX_CONTROLADORES]; 		// Threads de los controladores
+int num_threads_controladores;								// Número de threads de controladores usados
+int ids[MAX_JUGADORES];										// Ids de los jugadores
+Modelo * model = NULL;										// Puntero al modelo del juego
+Decodificador *decoder  = NULL;								// Puntero al decodificador
+int n, tamanio, tamanio_barcos;								// Variables de configuracion del juego.
 
 
 /* Resetea el juego */
@@ -71,12 +71,12 @@ void atender_controlador(int nro_controlador) {
 	int recibido;
 	std::string resp;
 	printf("Atendiendo controlador %d\n", nro_controlador);
-	recibido = recv(s_controladores[nro_controlador], buf_controladores, MAX_MSG_LENGTH, 0);
+	recibido = recv(s_controladores[nro_controlador], buf_controladores[nro_controlador], MAX_MSG_LENGTH, 0);
 	if (recibido < 0) {
 		perror("Recibiendo ");
 	} else if (recibido > 0) {
-		buf_controladores[recibido]='\0';
-		char * pch = strtok(buf_controladores, "|");
+		buf_controladores[nro_controlador][recibido]='\0';
+		char * pch = strtok(buf_controladores[nro_controlador], "|");
 		while (pch != NULL) {
 			//Ejecutar y responder
 			resp = decoder->decodificar(pch);
