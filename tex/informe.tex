@@ -269,7 +269,7 @@ Se toma un lock de escritura en un thread $A$ y se toma un lock de lectura en un
 
 Se toma un lock de lectura en un thread $A$, se toma un lock de escritura en un thread $B$, y se toma un lock de lectura en un thread $C$. El test verifica que $B$ y $C$ quedan bloqueados hasta que $A$ libera su lock de lectura. Cuando esto ocurre, se verifica que se desbloquea el thread $B$, que habia quedado bloqueado al tomar lock de escritura, y que el thread $C$, que había quedado bloqueado al tomar lock de lectura, se desbloquea sólo luego que $B$ libera su lock de escritura.
 
-De ésta manera nos aseguramos que los locks de lectura sólo se otorgan si no habían threads esperando tomar locks de escritura, de manera de evitar inanición de escritura.
+De esta manera nos aseguramos que los locks de lectura sólo se otorgan si no habían threads esperando tomar locks de escritura, de manera de evitar inanición de escritura.
 
 
 \subsection{Test de stress general}
