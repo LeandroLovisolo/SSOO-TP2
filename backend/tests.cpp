@@ -16,6 +16,12 @@ using namespace std;
 // Número de threads escribiendo/leyendo al azar en el test de stress.
 #define NUM_THREADS_TEST_STRESS_GENERAL 2000
 
+// Número de iteraciones del test de stress de inanición de escritura
+#define NUM_TESTS_STRESS_INANICION 500
+
+// Número de threads usados en cada iteración del test de stress de inanición de escritura.
+#define NUM_THREADS_TEST_STRESS_INANICION 100
+
 ///////////////////////////////////////////////////////////////////////////////
 // Fixture                                                                   //
 ///////////////////////////////////////////////////////////////////////////////
@@ -387,16 +393,28 @@ TEST_F(RWLockStressTest, TestDeStressGeneral) {
 // TEST: Test de stress de inanición                                         //
 ///////////////////////////////////////////////////////////////////////////////
 
-#define NUM_TESTS_STRESS_INANICION 500
-#define NUM_THREADS_TEST_STRESS_INANICION 100
-
 TEST_F(RWLockStressTest, TestDeStressInanicion) {
+	// Este test realiza la siguiente serie de pasos:
+	//
+	// 1. Toma n read locks.
+	// 2. Toma un write lock, que queda bloqueado.
+	// 3. Toma m read locks, que quedan bloqueados.
+	// 4. Libera los primeros n read locks.
+	// 5. Se asegura que se desbloquee el write lock luego del paso anterior.
+	// 6. Libera el write lock.
+	// 7. Se asegura que se desbloqueen los m read locks luego del paso anterior.
+	// 8. Libera los m read locks restantes.
+
 	// Imprimo estimativo del tiempo de ejecución del test.
 	int t = NUM_TESTS_STRESS_INANICION * (NUM_THREADS_TEST_STRESS_INANICION / 20) * TIEMPO_DE_ESPERA / 1000000;
 	cout << "Demora aproximadamente " << t << " segundos...\r" << flush;
 
 	for(int k = 0; k < NUM_TESTS_STRESS_INANICION; k++) {
+
+		// Cantidad de lecturas a realizar antes de la escritura
 		int n = rand() % NUM_THREADS_TEST_STRESS_INANICION;
+
+		// Cantidad de lecturas a realizar después de la escritura
 		int m = NUM_THREADS_TEST_STRESS_INANICION - n;
 
 		pthread_t n_threads[n], m_threads[m], writer;
