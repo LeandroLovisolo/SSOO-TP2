@@ -252,17 +252,17 @@ Tomamos dos locks de lectura en un mismo thread, y luego los liberamos. El test 
 
 \subsection{Admite una sola escritura a la vez}
 
-Se toma un lock de escritura en un thread $A$ y se toma otro lock de escritura en otro thread $B$. El test verifica que el thread $B$ queda bloqueado hasta que se libera el lock de escritura tomado por el thread $A$.
+Se toma un lock de escritura en un thread $A$ y se toma un lock de escritura en un thread $B$. El test verifica que el thread $B$ queda bloqueado hasta que se libera el lock de escritura tomado por el thread $A$.
 
 
 \subsection{No se escribe mientras se lee}
 
-Se toman un número de locks de lectura en un thread $A$ y se toma un lock de escritura en otro thread $B$. El test verifica que el thread $B$ queda bloqueado hasta que todos los locks de lectura en el thread $A$ se liberan.
+Se toman $n$ locks de lectura en un thread $A$ y se toma un lock de escritura en un thread $B$. El test verifica que el thread $B$ queda bloqueado hasta que se liberan los $n$ locks de lectura en el thread $A$.
 
 
 \subsection{No se lee mientras se escribe}
 
-Se toma un lock de escritura en un thread $A$ y se toma un lock de lectura en otro thread $B$. El test verifica que el thread $B$ queda bloqueado hasta que que se libera el lock de escritura en el thread $A$.
+Se toma un lock de escritura en un thread $A$ y se toma un lock de lectura en un thread $B$. El test verifica que el thread $B$ queda bloqueado hasta que que se libera el lock de escritura en el thread $A$.
 
 
 \subsection{No ocurre inanición de escritura}
