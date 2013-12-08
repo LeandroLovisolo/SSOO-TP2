@@ -265,14 +265,14 @@ int Modelo::apuntar(int s_id, int t_id, int x, int y, int *eta) {
 
 		// Unlock los jugadores
 		if(s_id < t_id) {
-			locks_jugadores[s_id].wunlock();
 			locks_jugadores[t_id].wunlock();
+			locks_jugadores[s_id].wunlock();
 		}
 		else {
-			locks_jugadores[t_id].wunlock();
 			if(s_id != t_id) {
 				locks_jugadores[s_id].wunlock();
 			}
+			locks_jugadores[t_id].wunlock();
 		}
 
 		return -ERROR_JUGADOR_INEXISTENTE;
@@ -283,14 +283,14 @@ int Modelo::apuntar(int s_id, int t_id, int x, int y, int *eta) {
 
 		// Unlock los jugadores
 		if(s_id < t_id) {
-			locks_jugadores[s_id].wunlock();
 			locks_jugadores[t_id].wunlock();
+			locks_jugadores[s_id].wunlock();
 		}
 		else {
-			locks_jugadores[t_id].wunlock();
 			if(s_id != t_id) {
 				locks_jugadores[s_id].wunlock();
 			}
+			locks_jugadores[t_id].wunlock();
 		}
 
 		return -ERROR_JUGADOR_HUNDIDO;
@@ -311,14 +311,14 @@ int Modelo::apuntar(int s_id, int t_id, int x, int y, int *eta) {
 	}
 	// Unlock los jugadores
 	if(s_id < t_id) {
-		locks_jugadores[s_id].wunlock();
 		locks_jugadores[t_id].wunlock();
+		locks_jugadores[s_id].wunlock();
 	}
 	else {
-		locks_jugadores[t_id].wunlock();
 		if(s_id != t_id) {
 			locks_jugadores[s_id].wunlock();
 		}
+		locks_jugadores[t_id].wunlock();
 	}
 
 	lock_jugando.runlock();
@@ -412,14 +412,14 @@ int Modelo::tocar(int s_id, int t_id) {
 
 		// Unlock los jugadores
 		if(s_id < t_id) {
-			locks_jugadores[s_id].wunlock();
 			locks_jugadores[t_id].wunlock();
+			locks_jugadores[s_id].wunlock();
 		}
 		else {
-			locks_jugadores[t_id].wunlock();
 			if(s_id != t_id) {
 				locks_jugadores[s_id].wunlock();
 			}
+			locks_jugadores[t_id].wunlock();
 		}
 	}
 
