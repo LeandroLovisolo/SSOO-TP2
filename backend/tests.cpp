@@ -1,6 +1,7 @@
 #include <vector>
 #include <RWLock.h>
 #include <pthread.h>
+#include <semaphore.h>
 
 #include "gtest/gtest.h"
 
@@ -13,7 +14,7 @@ using namespace std;
 #define NUM_TESTS_DE_INANICION 250
 
 // Número de threads escribiendo/leyendo al azar en el test de stress.
-#define NUM_THREADS_TEST_DE_STRESS 2000
+#define NUM_THREADS_TEST_STRESS_GENERAL 2000
 
 ///////////////////////////////////////////////////////////////////////////////
 // Fixture                                                                   //
@@ -246,10 +247,10 @@ TEST_F(RWLockTest, NoOcurreInanicionDeEscritura) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// TEST: Test de stress                                                      //
+// Fixture para tests de stress                                              //
 ///////////////////////////////////////////////////////////////////////////////
 
-typedef enum { COMIENZO_LECTURA, FIN_LECTURA,
+typedef enum { COMIENZO_LECTURA,   FIN_LECTURA,
 	           COMIENZO_ESCRITURA, FIN_ESCRITURA } evento_stress;
 
 // Se crea una nueva instancia de esta clase para cada test.
@@ -257,9 +258,17 @@ typedef enum { COMIENZO_LECTURA, FIN_LECTURA,
 class RWLockStressTest : public testing::Test {
 public:
 	RWLock lock;
+	sem_t semaforo_inanicion;
 
-	RWLockStressTest() { pthread_mutex_init(&eventos_mutex, NULL); }
-	~RWLockStressTest() { pthread_mutex_destroy(&eventos_mutex); }
+	RWLockStressTest() {
+		pthread_mutex_init(&eventos_mutex, NULL);
+		sem_init(&semaforo_inanicion, 0, 0);
+	}
+
+	~RWLockStressTest() {
+		pthread_mutex_destroy(&eventos_mutex);
+		sem_destroy(&semaforo_inanicion);
+	}
 
 	void evento(evento_stress e) {
 		pthread_mutex_lock(&eventos_mutex);
@@ -295,7 +304,7 @@ protected:
 
 // Puntos de entrada de los threads usados en los tests de stress.
 
-void* stress_read(void* arg) {
+void* stress_general_read(void* arg) {
 	RWLockStressTest* test = (RWLockStressTest*) arg;
 	test->lock.rlock();
 	test->evento(COMIENZO_LECTURA);
@@ -305,7 +314,7 @@ void* stress_read(void* arg) {
 	return NULL;
 }
 
-void* stress_write(void* arg) {
+void* stress_general_write(void* arg) {
 	RWLockStressTest* test = (RWLockStressTest*) arg;
 	test->lock.wlock();
 	test->evento(COMIENZO_ESCRITURA);
@@ -315,20 +324,34 @@ void* stress_write(void* arg) {
 	return NULL;
 }
 
-TEST_F(RWLockStressTest, TestDeStress) {
+void* stress_inanicion_read(void* arg) {
+	RWLockStressTest* test = (RWLockStressTest*) arg;
+	test->lock.rlock();
+	test->evento(COMIENZO_LECTURA);
+	sem_wait(&(test->semaforo_inanicion));
+	test->evento(FIN_LECTURA);
+	test->lock.runlock();
+	return NULL;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// TEST: Test de stress general                                              //
+///////////////////////////////////////////////////////////////////////////////
+
+TEST_F(RWLockStressTest, TestDeStressGeneral) {
 	// Imprimo estimativo del tiempo de ejecución del test.
-	int t = NUM_THREADS_TEST_DE_STRESS * TIEMPO_DE_ESPERA / 1000000;
+	int t = NUM_THREADS_TEST_STRESS_GENERAL * TIEMPO_DE_ESPERA / 1000000;
 	cout << "Demora aproximadamente " << t << " segundos...\r" << flush;
 
-	pthread_t threads[NUM_THREADS_TEST_DE_STRESS];
+	pthread_t threads[NUM_THREADS_TEST_STRESS_GENERAL];
 
 	// Ejecuto lecutras y escrituras al azar.
-	for(int i = 0; i < NUM_THREADS_TEST_DE_STRESS; i++) {
-		pthread_create(&threads[i], NULL, rand() % 2 ? stress_read : stress_write, this);
+	for(int i = 0; i < NUM_THREADS_TEST_STRESS_GENERAL; i++) {
+		pthread_create(&threads[i], NULL, rand() % 2 ? stress_general_read : stress_general_write, this);
 	}
 
 	// Espero a que todos los threads terminen.
-	for(int i = 0; i < NUM_THREADS_TEST_DE_STRESS; i++) {
+	for(int i = 0; i < NUM_THREADS_TEST_STRESS_GENERAL; i++) {
 		pthread_join(threads[i], NULL);	
 	}
 
@@ -358,6 +381,89 @@ TEST_F(RWLockStressTest, TestDeStress) {
 
 	// Me aseguro que todas las lecturas hayan terminado.
 	EXPECT_EQ(0, lecturas) << eventos_to_str();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// TEST: Test de stress de inanición                                         //
+///////////////////////////////////////////////////////////////////////////////
+
+#define NUM_TESTS_STRESS_INANICION 500
+#define NUM_THREADS_TEST_STRESS_INANICION 100
+
+TEST_F(RWLockStressTest, TestDeStressInanicion) {
+	// Imprimo estimativo del tiempo de ejecución del test.
+	int t = NUM_TESTS_STRESS_INANICION * (NUM_THREADS_TEST_STRESS_INANICION / 20) * TIEMPO_DE_ESPERA / 1000000;
+	cout << "Demora aproximadamente " << t << " segundos...\r" << flush;
+
+	for(int k = 0; k < NUM_TESTS_STRESS_INANICION; k++) {
+		int n = rand() % NUM_THREADS_TEST_STRESS_INANICION;
+		int m = NUM_THREADS_TEST_STRESS_INANICION - n;
+
+		pthread_t n_threads[n], m_threads[m], writer;
+
+		// Tomo n locks de lectura.
+		for(int i = 0; i < n; i++) {
+			pthread_create(&n_threads[i], NULL, stress_inanicion_read, this);
+		}
+
+		// Espero a que se ejecuten algunas lecturas.
+		esperar();
+
+		// Ejecuto una escritura (queda bloqueado).
+		pthread_create(&writer, NULL, stress_general_write, this);
+
+		// Espero a que se ejecute el write.
+		esperar();
+
+		// Ejecuto m lecturas (quedan bloqueadas).
+		for(int i = 0; i < m; i++) {
+			pthread_create(&m_threads[i], NULL, stress_general_read, this);
+		}
+
+		// Libero los n locks de lectura.
+		for(int i = 0; i < n; i++) {
+			sem_post(&semaforo_inanicion);
+		}
+
+		// Espero que terminen todos los threads.
+		for(int i = 0; i < n; i++) pthread_join(n_threads[i], NULL);
+		pthread_join(writer, NULL);
+		for(int i = 0; i < m; i++) pthread_join(m_threads[i], NULL);
+
+		// Verifico que el vector de eventos sea válido.
+		EXPECT_EQ((2 * n) + (2 * m) + 2, eventos.size());
+
+		// Me aseguro que se haya hecho la cantidad de lecturas correcta
+		// antes del write.
+		int lecturas = 0;
+		for(int i = 0; i < 2 * n; i++) {
+			switch(eventos[i]) {
+				case COMIENZO_LECTURA: lecturas++; break;
+				case FIN_LECTURA:      lecturas--; break;
+				default:
+				EXPECT_TRUE(false) << eventos_to_str();
+			}
+		}
+
+		// Me aseguro que se haya hecho el write en el momento correcto.
+		EXPECT_EQ(COMIENZO_ESCRITURA, eventos[2 * n]) << eventos_to_str();
+		EXPECT_EQ(FIN_ESCRITURA, eventos[(2 * n) + 1]) << eventos_to_str();
+
+		// Me aseguro que se haya hecho la cantidad de lecturas correcta
+		// después del write.
+		lecturas = 0;
+		for(size_t i = 2 * (n + 2); i < eventos.size(); i++) {
+			switch(eventos[i]) {
+				case COMIENZO_LECTURA: lecturas++; break;
+				case FIN_LECTURA:      lecturas--; break;
+				default:
+				EXPECT_TRUE(false) << eventos_to_str();
+			}
+		}
+
+		// Limpio el vector de eventos para poder repetir el test.
+		eventos.clear();
+	}
 }
 
 GTEST_API_ int main(int argc, char **argv) {
