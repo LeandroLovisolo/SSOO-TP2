@@ -245,6 +245,10 @@ Finalmente, al retirarse un escritor (\Fn{Read-Unlock}{}), éste desbloquea el m
 A continuación documentaremos las modificaciones hechas al servidor.
 
 \begin{itemize}
+    \item Se crea un buffer de lectura/escritura y una instancia del decodificador tanto para los controladores como para los jugadores que podrán conectarse para evitar lecturas y escrituras simultáneas.
+
+    \item En las funciones para atender los controladores y jugadores, se reemplaza la función \textbf{strtok} por \textbf{strtok\_r} la cual es thread safe.
+
     \item Se crea la función abrir\_socket\_controladores() que crea el socket correspondiente para la escucha de nuevos controladores
     
     \item Se crea la función controlador() para atender las comunicaciones entre un controlador y el servidor. La función controlador() queda atendiendo las comunicaciones de forma indeterminada, a diferencia de la función jugador(), que sólo atiende las comunicaciones hasta que la partida termina.
