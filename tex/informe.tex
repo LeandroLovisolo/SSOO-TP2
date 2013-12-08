@@ -555,21 +555,47 @@ Si no se abriera este método en los dos casos mencionados, tendríamos un únic
         \EndIf
         \State
         \State Tomamos lock de escritura sobre ambos jugadores para realizar el tiro. Esto evita que se escriba el mismo jugador por más de un thread en el caso de tener dos jugadores apuntando al mismo jugador a la vez.
+        \State Realizamos los locks en orden por número de ID para evitar deadlocks (A ataca B, B ataca A al mismo tiempo) y comprobamos que no se realizen dos locks cuando un usuario se ataca a si mismo.
         \State
-        \State \Fn{wlock}{locks\_jugadores[s\_id]}
-        \State \Fn{wlock}{locks\_jugadores[t\_id]}
+        \If{s\_id $<$ t\_id}
+            \State \Fn{wlock}{locks\_jugadores[s\_id]}
+            \State \Fn{wlock}{locks\_jugadores[t\_id]}
+        \Else
+            \State \Fn{wlock}{locks\_jugadores[t\_id]}
+            \If{s\_id != t\_id}
+                \State \Fn{wlock}{locks\_jugadores[s\_id]}
+            \EndIf
+        \EndIf
         \State
         \If{$jugadores[s\_id] = $ \Null \POr $jugadores[t\_id] = $ \Null}
             \State \Fn{runlock}{lock\_jugando}
-            \State \Fn{wunlock}{locks\_jugadores[s\_id]}
-            \State \Fn{wunlock}{locks\_jugadores[t\_id]}            
+
+            \If{s\_id $<$ t\_id}
+                \State \Fn{wunlock}{locks\_jugadores[t\_id]}
+                \State \Fn{wunlock}{locks\_jugadores[s\_id]}
+            \Else
+                \If{s\_id != t\_id}
+                    \State \Fn{wunlock}{locks\_jugadores[s\_id]}
+                \EndIf
+                \State \Fn{wunlock}{locks\_jugadores[t\_id]}
+            \EndIf
+
             \State \PReturn{-\texttt{ERROR\_JUGADOR\_INEXISTENTE}}
         \EndIf
         \State
         \If{$jugadores[s\_id].$\Fn{esta\_vivo}{}}
             \State \Fn{runlock}{lock\_jugando}
-            \State \Fn{wunlock}{locks\_jugadores[s\_id]}
-            \State \Fn{wunlock}{locks\_jugadores[t\_id]}            
+
+            \If{s\_id $<$ t\_id}
+                \State \Fn{wunlock}{locks\_jugadores[t\_id]}
+                \State \Fn{wunlock}{locks\_jugadores[s\_id]}
+            \Else
+                \If{s\_id != t\_id}
+                    \State \Fn{wunlock}{locks\_jugadores[s\_id]}
+                \EndIf
+                \State \Fn{wunlock}{locks\_jugadores[t\_id]}
+            \EndIf
+
             \State \PReturn{-\texttt{ERROR\_JUGADOR\_HUNDIDO}}        
         \EndIf
         \State
@@ -587,8 +613,17 @@ Si no se abriera este método en los dos casos mencionados, tendríamos un únic
             \EndIf
         \EndIf
         \State
-        \State \Fn{wunlock}{locks\_jugadores[s\_id]}
-        \State \Fn{wunlock}{locks\_jugadores[t\_id]}
+
+        \If{s\_id $<$ t\_id}
+            \State \Fn{wunlock}{locks\_jugadores[t\_id]}
+            \State \Fn{wunlock}{locks\_jugadores[s\_id]}
+        \Else
+            \If{s\_id != t\_id}
+                \State \Fn{wunlock}{locks\_jugadores[s\_id]}
+            \EndIf
+            \State \Fn{wunlock}{locks\_jugadores[t\_id]}
+        \EndIf
+
         \State \Fn{runlock}{lock\_jugando}
         \State \PReturn{retorno}
     \EndProcedure
@@ -618,9 +653,17 @@ Si no se abriera este método en los dos casos mencionados, tendríamos un únic
         \If{$tiros[s\_id].$\Fn{es\_posible\_tocar}{}}
             \State
             \State Tomamos locks de escritura sobre ambos jugadores para poder tener acceso de forma exclusiva mientras actualizamos los puntajes.
+            \State Como en la función apuntar, realizamos el lock en orden por ID para evitar deadlocks y comprobamos que no se realizen dos locks si el usuario se ataca a si mismo.
             \State
-            \State \Fn{wlock}{locks\_jugadores[t\_id]}
-            \State \Fn{wlock}{locks\_jugadores[s\_id]}
+            \If{s\_id $<$ t\_id}
+                \State \Fn{wlock}{locks\_jugadores[s\_id]}
+                \State \Fn{wlock}{locks\_jugadores[t\_id]}
+            \Else
+                \State \Fn{wlock}{locks\_jugadores[t\_id]}
+                \If{s\_id != t\_id}
+                    \State \Fn{wlock}{locks\_jugadores[s\_id]}
+                \EndIf
+            \EndIf
             \State
             \State $x \leftarrow tiros[s\_id].x$
             \State $y \leftarrow tiros[s\_id].y$
@@ -666,8 +709,15 @@ Si no se abriera este método en los dos casos mencionados, tendríamos un únic
                 \State $jugadores[s\_id].$\Fn{agregar\_puntaje}{\texttt{PUNTAJE\_MAGALLANES}}
             \EndIf
             \State
-            \State \Fn{wunlock}{locks\_jugadores[t\_id]}
-            \State \Fn{wunlock}{locks\_jugadores[s\_id]}
+            \If{s\_id $<$ t\_id}
+                \State \Fn{wunlock}{locks\_jugadores[t\_id]}
+                \State \Fn{wunlock}{locks\_jugadores[s\_id]}
+            \Else
+                \If{s\_id != t\_id}
+                    \State \Fn{wunlock}{locks\_jugadores[s\_id]}
+                \EndIf
+                \State \Fn{wunlock}{locks\_jugadores[t\_id]}
+            \EndIf
         \EndIf
         \State
         \State \Fn{wunlock}{lock\_jugando}
