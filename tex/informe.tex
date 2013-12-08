@@ -230,9 +230,49 @@ Cuando llega un lector (\Fn{Read-Lock}{}), éste pasa exitosamente por el moline
 
 Al retirarse (\Fn{Read-Unlock}{}), el lector decrementa en 1 la cantidad de lectores, y en caso de ser el último, apaga la luz al salir (\Fn{Signal}{room\_empty}.)
 
-Cuando llega un escritor (\Fn{Write-Lock}{}), éste bloquea el molinete para que no ingresen nuevos lectores (\Fn{Wait}{turnstile}) y en caso de que haya algún lector en la habitación, espera hasta que se retire el último lector (\Fn{Wait}{room\_empty}) y prende la luz al entrar ($room\_empty$ vale 0 luego del \textsc{Wait}.) Al bloquear el ingreso a nuevos lectores \textbf{nos aseguramos que no ocurra inanición de escritura}, pues de lo contrario podría darse el caso de tener un número muy grande de lectores ingresando constantemente a la habitación, haciendo que ésta nunca quede vacía.
+Cuando llega un escritor (\Fn{Write-Lock}{}), éste bloquea el molinete para que no ingresen nuevos lectores (\Fn{Wait}{turnstile}) y en caso de que haya algún lector en la habitación, espera hasta que se retire el último lector (\Fn{Wait}{room\_empty}) y prende la luz al entrar ($room\_empty$ vale 0 luego del \textsc{Wait}.) Al bloquear el ingreso a nuevos lectores nos aseguramos que no ocurra inanición de escritura, pues de lo contrario podría darse el caso de tener un número muy grande de lectores ingresando constantemente a la habitación, haciendo que ésta nunca quede vacía.
 
 Finalmente, al retirarse un escritor (\Fn{Read-Unlock}{}), éste desbloquea el molinete para permitir el paso a los lectores (\Fn{Signal}{turnstile}) y apaga la luz al salir (\Fn{Signal}{room\_empty}). 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Tests del Readers-Writers Lock                                            %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Tests del Readers-Writers Lock}
+
+Verificamos empíricamente la correctitud del lock por medio del conjunto de tests a continuación.
+
+
+\subsection{Admite varias lecturas a la vez}
+
+Tomamos dos locks de lectura en un mismo thread, y luego los liberamos. El test es exitoso si termina de ejecutarse; es decir, si no se bloquea al tomar el segundo lock.
+
+
+\subsection{Admite una sola escritura a la vez}
+
+Se toma un lock de escritura en un thread $A$ y se toma otro lock de escritura en otro thread $B$. El test verifica que el thread $B$ queda bloqueado hasta que se libera el lock de escritura tomado por el thread $A$.
+
+
+\subsection{No se escribe mientras se lee}
+
+Se toman un número de locks de lectura en un thread $A$ y se toma un lock de escritura en otro thread $B$. El test verifica que el thread $B$ queda bloqueado hasta que todos los locks de lectura en el thread $A$ se liberan.
+
+
+\subsection{No se lee mientras se escribe}
+
+Se toma un lock de escritura en un thread $A$ y se toma un lock de lectura en otro thread $B$. El test verifica que el thread $B$ queda bloqueado hasta que que se libera el lock de escritura en el thread $A$.
+
+
+\subsection{No ocurre inanición de escritura}
+
+Se toma un lock de lectura en un thread $A$, se toma un lock de escritura en un thread $B$, y se toma un lock de lectura en un thread $C$. El test verifica que $B$ y $C$ quedan bloqueados hasta que $A$ libera su lock de lectura. Cuando esto ocurre, se verifica que se desbloquea el thread $B$, que habia quedado bloqueado al tomar lock de escritura, y que el thread $C$, que había quedado bloqueado al tomar lock de lectura, se desbloquea sólo luego que $B$ libera su lock de escritura.
+
+De ésta manera nos aseguramos que los locks de lectura sólo se otorgan si no habían threads esperando tomar locks de escritura, de manera de evitar inanición de escritura.
+
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
