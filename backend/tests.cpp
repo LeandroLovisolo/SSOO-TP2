@@ -103,7 +103,7 @@ TEST_F(RWLockTest, AdmiteUnaSolaEscrituraALaVez) {
 
 	// Verifico que el thread no haya podido realizar la escritura,
 	// pues habíamos tomado un lock de escritura.
-	EXPECT_EQ((unsigned int) 0, eventos.size());
+	EXPECT_EQ(0, eventos.size());
 
 	// Libero el lock de escritura y espero que termine el thread.
 	lock.wunlock();
@@ -137,7 +137,7 @@ TEST_F(RWLockTest, NoSeEscribeMientrasSeLee) {
 
 		// Verifico que el thread no haya podido realizar la escritura,
 		// pues todavía se tiene tomado al menos un lock de lectura.
-		EXPECT_EQ((unsigned int) 0, eventos.size());
+		EXPECT_EQ(0, eventos.size());
 
 		// Libero el i-ésimo lock de lectura.
 		lock.runlock();
@@ -168,7 +168,7 @@ TEST_F(RWLockTest, NoSeLeeMientrasSeEscribe) {
 
 	// Verifico que el thread no haya podido realizar la lectura,
 	// pues habíamos tomado un lock de escritura.
-	EXPECT_EQ((unsigned int) 0, eventos.size());
+	EXPECT_EQ(0, eventos.size());
 
 	// Libero el lock de escritura y espero que termine el thread.
 	lock.wunlock();
@@ -214,7 +214,7 @@ TEST_F(RWLockTest, NoOcurreInanicionDeEscritura) {
 
 		// Verifico que el thread que intenta escribir haya quedado bloqueado,
 		// pues habíamos tomado un lock de lectura.
-		EXPECT_EQ((unsigned int) 0, eventos.size()) << eventos_to_str();
+		EXPECT_EQ(0, eventos.size()) << eventos_to_str();
 
 		// Creo un thread que intenta leer y le doy tiempo a ejecutarse.
 		pthread_t reader;
@@ -225,7 +225,7 @@ TEST_F(RWLockTest, NoOcurreInanicionDeEscritura) {
 		// la solicitud de write lock del thread anterior quedó bloqueada, y
 		// cualquier solicitud posterior de read lock debería quedar bloqueada
 		// hasta que se libere el write lock del proceso que escribe.
-		EXPECT_EQ((unsigned int) 0, eventos.size()) << eventos_to_str();
+		EXPECT_EQ(0, eventos.size()) << eventos_to_str();
 
 		// Libero el lock de lectura y espero que terminen los threads.
 		lock.runlock();
