@@ -182,7 +182,9 @@ error Modelo::ack(int s_id){
 }
 
 bool Modelo::termino() {
+	lock_jugando.rlock();
 	if(this->jugando == SETUP) {
+		lock_jugando.runlock();
 		return false;
 	}
 
@@ -190,10 +192,12 @@ bool Modelo::termino() {
     	locks_jugadores[i].rlock();
         if(!this->jugadores[i]->termino()) {
         	locks_jugadores[i].runlock();
+        	lock_jugando.runlock();
             return false;
         }
         locks_jugadores[i].runlock();
     }
+    lock_jugando.runlock();
     return true;
 }
 
@@ -328,9 +332,24 @@ int Modelo::apuntar(int s_id, int t_id, int x, int y, int *eta) {
 
 /** Obtener un update de cuanto tiempo debo esperar para que se concrete el tiro */
 int Modelo::dame_eta(int s_id) {
-	if (this->jugando != DISPAROS) return -ERROR_JUEGO_NO_COMENZADO;
-	if (this->jugadores[s_id] == NULL) return -ERROR_JUGADOR_INEXISTENTE;
-	return this->tiros[s_id].getEta();
+	lock_jugando.rlock();
+	if (this->jugando != DISPAROS) {
+		lock_jugando.runlock();
+		return -ERROR_JUEGO_NO_COMENZADO;
+	}
+
+	locks_jugadores[s_id].rlock();
+
+	if (this->jugadores[s_id] == NULL) {
+		lock_jugando.runlock();
+		locks_jugadores[s_id].runlock();
+		return -ERROR_JUGADOR_INEXISTENTE;
+	}
+
+	int eta = this->tiros[s_id].getEta();
+	locks_jugadores[s_id].runlock();
+
+	return eta;
 }
 
 /** Concretar el tiro efectivamente, solo tiene exito si ya trascurrió el eta.
@@ -342,27 +361,35 @@ int Modelo::tocar(int s_id, int t_id) {
 		return -ERROR_JUEGO_NO_COMENZADO;
 	}
 
+	if(s_id < t_id) {
+		locks_jugadores[s_id].wlock();
+		locks_jugadores[t_id].wlock();
+	}
+	else {
+		locks_jugadores[t_id].wlock();
+		if(s_id != t_id) {
+			locks_jugadores[s_id].wlock();
+		}
+	}
+
 	if (this->jugadores[s_id] == NULL || this->jugadores[t_id] == NULL) {
 		lock_jugando.wunlock();
+		if(s_id < t_id) {
+			locks_jugadores[t_id].wunlock();
+			locks_jugadores[s_id].wunlock();
+		}
+		else {
+			if(s_id != t_id) {
+				locks_jugadores[s_id].wunlock();
+			}
+			locks_jugadores[t_id].wunlock();
+		}
 		return -ERROR_JUGADOR_INEXISTENTE;	
 	}
 	
 	int retorno = -ERROR_ETA_NO_TRANSCURRIDO;
 
 	if (this->tiros[s_id].es_posible_tocar()) {
-		// Evito deadlock con el mismo tirador
-
-		if(s_id < t_id) {
-			locks_jugadores[s_id].wlock();
-			locks_jugadores[t_id].wlock();
-		}
-		else {
-			locks_jugadores[t_id].wlock();
-			if(s_id != t_id) {
-				locks_jugadores[s_id].wlock();
-			}
-		}
-
 
 		int x = this->tiros[s_id].x;
 		int y = this->tiros[s_id].y;
