@@ -12,6 +12,9 @@ using namespace std;
 // Número de iteraciones del test de inanición de escritura.
 #define NUM_TESTS_DE_INANICION 250
 
+// Número de threads escribiendo/leyendo al azar en el test de stress.
+#define NUM_THREADS_TEST_DE_STRESS 2000
+
 ///////////////////////////////////////////////////////////////////////////////
 // Fixture                                                                   //
 ///////////////////////////////////////////////////////////////////////////////
@@ -240,6 +243,121 @@ TEST_F(RWLockTest, NoOcurreInanicionDeEscritura) {
 		// Limpio el vector de eventos para poder repetir el test.
 		eventos.clear();
 	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// TEST: Test de stress                                                      //
+///////////////////////////////////////////////////////////////////////////////
+
+typedef enum { COMIENZO_LECTURA, FIN_LECTURA,
+	           COMIENZO_ESCRITURA, FIN_ESCRITURA } evento_stress;
+
+// Se crea una nueva instancia de esta clase para cada test.
+
+class RWLockStressTest : public testing::Test {
+public:
+	RWLock lock;
+
+	RWLockStressTest() { pthread_mutex_init(&eventos_mutex, NULL); }
+	~RWLockStressTest() { pthread_mutex_destroy(&eventos_mutex); }
+
+	void evento(evento_stress e) {
+		pthread_mutex_lock(&eventos_mutex);
+		eventos.push_back(e);
+		pthread_mutex_unlock(&eventos_mutex);
+	}
+
+	void esperar() {
+		usleep(TIEMPO_DE_ESPERA);
+	}
+
+protected:
+	vector<evento_stress> eventos;
+    pthread_mutex_t eventos_mutex;
+
+
+	// Convierte el vector de eventos a texto (para imprimir por consola.)
+	string eventos_to_str() {
+		string s = "eventos = [";
+		for(size_t i = 0; i < eventos.size(); i++) {
+			if(i > 0) s += ", ";
+			switch(eventos[i]) {
+				case COMIENZO_LECTURA:   s += "COMIENZO_LECTURA";   break;
+				case FIN_LECTURA:        s += "FIN_LECTURA";        break;
+				case COMIENZO_ESCRITURA: s += "COMIENZO_ESCRITURA"; break;
+				case FIN_ESCRITURA:      s += "FIN_ESCRITURA";      break;
+			}
+		}
+		s += "]";
+		return s;
+	}
+};
+
+// Puntos de entrada de los threads usados en los tests de stress.
+
+void* stress_read(void* arg) {
+	RWLockStressTest* test = (RWLockStressTest*) arg;
+	test->lock.rlock();
+	test->evento(COMIENZO_LECTURA);
+	test->esperar();
+	test->evento(FIN_LECTURA);
+	test->lock.runlock();
+	return NULL;
+}
+
+void* stress_write(void* arg) {
+	RWLockStressTest* test = (RWLockStressTest*) arg;
+	test->lock.wlock();
+	test->evento(COMIENZO_ESCRITURA);
+	test->esperar();
+	test->evento(FIN_ESCRITURA);
+	test->lock.wunlock();
+	return NULL;
+}
+
+TEST_F(RWLockStressTest, TestDeStress) {
+	// Imprimo estimativo del tiempo de ejecución del test.
+	int t = NUM_THREADS_TEST_DE_STRESS * TIEMPO_DE_ESPERA / 1000000;
+	cout << "Demora aproximadamente " << t << " segundos...\r" << flush;
+
+	pthread_t threads[NUM_THREADS_TEST_DE_STRESS];
+
+	// Ejecuto lecutras y escrituras al azar.
+	for(int i = 0; i < NUM_THREADS_TEST_DE_STRESS; i++) {
+		pthread_create(&threads[i], NULL, rand() % 2 ? stress_read : stress_write, this);
+	}
+
+	// Espero a que todos los threads terminen.
+	for(int i = 0; i < NUM_THREADS_TEST_DE_STRESS; i++) {
+		pthread_join(threads[i], NULL);	
+	}
+
+	// Verifico que el vector de eventos sea válido.
+	int lecturas = 0;
+	for(size_t i = 0; i < eventos.size(); i++) {
+		switch(eventos[i]) {
+			case COMIENZO_LECTURA:
+			lecturas++;
+			break;
+
+			case FIN_LECTURA:
+			lecturas--;
+			break;
+
+			case COMIENZO_ESCRITURA:
+			// Me aseguro que al comenzarse una escritura no haya ninguna lectura en curso.
+			EXPECT_EQ(0, lecturas) << eventos_to_str();
+			break;
+
+			case FIN_ESCRITURA:
+			// Me aseguro que no haya ocurrido ningún evento mientras se escribía.
+			EXPECT_EQ(COMIENZO_ESCRITURA, eventos[i - 1]) << eventos_to_str();
+			break;
+		}
+	}
+
+	// Me aseguro que todas las lecturas hayan terminado.
+	EXPECT_EQ(0, lecturas) << eventos_to_str();
 }
 
 GTEST_API_ int main(int argc, char **argv) {
