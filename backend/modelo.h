@@ -16,9 +16,7 @@ class Modelo {
         ~Modelo();
         int     agregarJugador(std::string nombre);		/* agrega el jugador y devuelve el id */
 		error	ubicar(int t_id, int * xs, int *  ys, int tamanio);	/* ubica el barco para el jugador t_id */
-		error	borrar_barcos(int t_id);
 	    error   empezar();								/* pasa a la fase de tiroteo */
-		error   finalizar();							/* finaliza la fase de tiroteo */
         error   reiniciar();							/* reinicia el score y los jugadores, pasa a la fase de ubicacion */
         error   ack(int s_id);
         bool    termino();
@@ -36,7 +34,8 @@ class Modelo {
 #endif
 	private:
 		error   				_empezar();
-
+		error   				finalizar();					/* finaliza la fase de tiroteo */
+		error					borrar_barcos(int t_id);
 		RWLock					lock_cantidad_jugadores;
 		RWLock					lock_jugadores_listos;
 		RWLock					*locks_jugadores;
