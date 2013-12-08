@@ -274,7 +274,7 @@ De ésta manera nos aseguramos que los locks de lectura sólo se otorgan si no h
 
 \subsection{Test de stress general}
 
-Se tiene una lista de eventos de tipo \{\texttt{COMIENZO\_LECTURA}, \texttt{FIN\_LECTURA}, \texttt{COMIENZO\_ESCRITURA}, \texttt{FIN\_ESCRITURA}\} y se definen dos tipos de threads: uno de lectura y uno de escritura. El cuerpo de ambos threads consiste en agregar a la lista de eventos el evento \texttt{COMIENZO\_LECTURA} ó \texttt{COMIENZO\_ESCRITURA}, esperar una cantidad determinada de tiempo y agregar el evento \texttt{FIN\_LECTURA} ó \texttt{FIN\_ESCRITURA}, según el tipo de thread.
+Se tiene una lista de eventos de tipo \{\texttt{COMIENZO\_LECTURA}, \texttt{FIN\_LECTURA}, \texttt{COMIENZO\_ESCRITURA}, \texttt{FIN\_ESCRITURA}\} y se definen dos tipos de threads: de lectura y de escritura. El cuerpo de ambos threads consiste en agregar a la lista de eventos el evento \texttt{COMIENZO\_LECTURA} ó \texttt{COMIENZO\_ESCRITURA}, esperar una cantidad determinada de tiempo y agregar el evento \texttt{FIN\_LECTURA} ó \texttt{FIN\_ESCRITURA}, según el tipo de thread.
 
 Se crea un lote de $n$ threads al azar, cada uno con misma probabilidad de ser de lectura o escritura. Luego que todos los threads finalizan, se verifica que:
 
