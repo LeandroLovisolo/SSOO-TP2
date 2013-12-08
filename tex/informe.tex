@@ -287,6 +287,35 @@ Se crea un lote de $n$ threads al azar, cada uno con misma probabilidad de ser d
 \end{itemize}
 
 
+\subsection{Test de stress de inanición}
+
+Se realiza la siguiente secuencia de pasos:
+
+\begin{itemize}
+    \item Se toman $n$ locks de lectura en threads $A_1, \ldots, A_n$.
+
+    \item Se toma un lock de escritura en un thread $B$.
+
+    \item Se verifica que el thread $B$ haya quedado bloqueado.
+
+    \item Se toman $m$ locks de lectura en threads $C_1, \ldots, C_m$.
+
+    \item Se verifica que los threads $C_1, \ldots, C_m$ hayan quedado bloqueados.
+
+    \item Se liberan los locks de lectura tomados en los threads $A_1, \ldots, A_n$.
+
+    \item Se verifica que el thread $B$ se haya desbloqueado luego del paso anterior.
+
+    \item Se libera el lock de escritura tomado en el thread $B$.
+
+    \item Se verifica que los threads $C_1, \ldots, C_m$ se hayan desbloqueado luego del paso anterior.
+
+    \item Se liberan los locks de lectura tomados en los threads $C_1, \ldots, C_m$.
+
+    \item Se verifica que todos los threads hayan terminado.
+\end{itemize}
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Server                                                                    %%
