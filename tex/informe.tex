@@ -272,6 +272,19 @@ Se toma un lock de lectura en un thread $A$, se toma un lock de escritura en un 
 De ésta manera nos aseguramos que los locks de lectura sólo se otorgan si no habían threads esperando tomar locks de escritura, de manera de evitar inanición de escritura.
 
 
+\subsection{Test de stress general}
+
+Se tiene una lista de eventos de tipo \{\texttt{COMIENZO\_LECTURA}, \texttt{FIN\_LECTURA}, \texttt{COMIENZO\_ESCRITURA}, \texttt{FIN\_ESCRITURA}\} y se definen dos tipos de threads: uno de lectura y uno de escritura. El cuerpo de ambos threads consiste en agregar a la lista de eventos el evento \texttt{COMIENZO\_LECTURA} ó \texttt{COMIENZO\_ESCRITURA}, esperar una cantidad determinada de tiempo y agregar el evento \texttt{FIN\_LECTURA} ó \texttt{FIN\_ESCRITURA}, según el tipo de thread.
+
+Se crea un lote de $n$ threads al azar, cada uno con misma probabilidad de ser de lectura o escritura. Luego que todos los threads finalizan, se verifica que:
+
+\begin{itemize}
+    \item La cantidad de eventos \texttt{FIN\_LECTURA} es igual a la cantidad de eventos \texttt{COMIENZO\_LECTURA} antes de cada evento \texttt{COMIENZO\_ESCRITURA}, para asegurar que no se haya producido ninguna escritura mientras había una lectura en curso.
+    
+    \item Un evento \texttt{COMIENZO\_ESCRITURA} es seguido únicamente por un evento \texttt{FIN\_ESCRITURA}, para asegurar que se produce sólo una escritura a la vez y que no se inician lecturas mientras se escribe.
+
+    \item La cantidad total de eventos \texttt{COMIENZO\_LECTURA} es igual a la cantidad total de eventos \texttt{FIN\_LECTURA}, como medida extra para asegurar que todas las lecturas eventualmente terminan.
+\end{itemize}
 
 
 
